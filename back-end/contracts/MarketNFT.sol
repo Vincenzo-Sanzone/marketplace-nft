@@ -19,7 +19,7 @@ contract MarketNFT is ERC721URIStorage, Ownable{
     //create a map with the token id mapped with NFTListing (aka memorize also the price and seller)
     mapping(uint256 => NFTListing) private _listings;
 
-    constructor() ERC721("MarketNFT", "NFT"){
+    constructor() ERC721("MarketNFT", "NFT") Ownable(msg.sender){
         //we can suppose the one who deployed the contract is the owner
         //_owner = msg.sender;
     }
@@ -80,5 +80,9 @@ contract MarketNFT is ERC721URIStorage, Ownable{
     function clearListing(uint256 tokenID) private {
         _listings[tokenID].price = 0;
         _listings[tokenID].seller= address(0);
+    }
+
+    function getListingByTokenID(uint256 tokenID)public  returns (uint256, address ){
+        return  (_listings[tokenID].price, _listings[tokenID].seller);
     }
 }
