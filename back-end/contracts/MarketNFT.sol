@@ -44,10 +44,10 @@ contract MarketNFT is ERC721URIStorage, Ownable{
         require(listing.price>0, "MarketNFT: NFT not for sale");
         //control if the price paid is the price of the NFT
         require(msg.value == listing.price, "MarketNFT: the price paid is not the value of the NFT");
-       //transfer the ownership from the contract to the msg.sender
+        //transfer the ownership from the contract to the msg.sender
+        payable(listing.seller).transfer(listing.price*95/100); // !! we should use save-math !!
         transferFrom(address(this), msg.sender,tokenID);
         //we take 5% of the price
-        payable(listing.seller).transfer(listing.price*95/100); // !! we should use save-math !!
         // eliminate the NFT from listing
         clearListing(tokenID);
     }
