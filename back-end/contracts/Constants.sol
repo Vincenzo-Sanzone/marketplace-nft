@@ -6,4 +6,6 @@ library Constants {
     string internal constant NFT_SYMBOL = "NFT";
     string internal constant MARKET_NFT_NAME = "MarketNFT";
     string internal constant MARKET_NFT_SYMBOL = "NFT";
+
+    uint8 internal constant PERCENTAGE_BASE = 100;
 }

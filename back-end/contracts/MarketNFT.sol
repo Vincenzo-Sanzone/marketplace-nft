@@ -16,6 +16,7 @@ import "./Errors.sol";
 contract MarketNFT is ERC721URIStorage, Ownable {
 
     mapping(uint256 => NFTListing) private _listings;
+    uint8 private _feePercentage = 5;
 
     constructor() ERC721(Constants.MARKET_NFT_NAME, Constants.MARKET_NFT_SYMBOL) Ownable(msg.sender){}
 
@@ -37,9 +38,9 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(msg.value == listing.price, Errors.ERROR_PRICE_PAID);
 
-        (bool success, uint256 ethToSeller) = Math.tryMul(listing.price, 95);
+        (bool success, uint256 ethToSeller) = Math.tryMul(listing.price, Constants.PERCENTAGE_BASE - _feePercentage);
         assert(success);
-        (success, ethToSeller) = Math.tryDiv(ethToSeller, 100);
+        (success, ethToSeller) = Math.tryDiv(ethToSeller, Constants.PERCENTAGE_BASE);
         assert(success);
         uint256 ethToOwner;
         (success, ethToOwner) = Math.trySub(listing.price, ethToSeller);
@@ -83,5 +84,9 @@ contract MarketNFT is ERC721URIStorage, Ownable {
 
     function getListingByTokenID(uint256 tokenID) public returns (uint256, address){
         return (_listings[tokenID].price, _listings[tokenID].seller);
+    }
+
+    function updateFeePercentage(uint8 feePercentage) public onlyOwner {
+        _feePercentage = feePercentage;
     }
 }
