@@ -82,7 +82,7 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         _listings[tokenID].seller = address(0);
     }
 
-    function getListingByTokenID(uint256 tokenID) public returns (uint256, address){
+    function getListingByTokenID(uint256 tokenID) public view returns (uint256, address){
         return (_listings[tokenID].price, _listings[tokenID].seller);
     }
 
