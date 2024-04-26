@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import {NFT} from "./NFT.sol";
+import "./Constants.sol";
+import "./Errors.sol";
 
     struct NFTListing {
         uint256 price;
@@ -15,15 +17,15 @@ contract MarketNFT is ERC721URIStorage, Ownable {
 
     mapping(uint256 => NFTListing) private _listings;
 
-    constructor() ERC721("MarketNFT", "NFT") Ownable(msg.sender){}
+    constructor() ERC721(Constants.MARKET_NFT_NAME, Constants.MARKET_NFT_SYMBOL) Ownable(msg.sender){}
 
     function mint(address to, string memory tokenURI) public {
         new NFT().mint(to, tokenURI);
     }
 
     function listNFT(uint256 tokenID, uint256 price) public {
-        require(price > 0, "MarketNFT: price must be greater than 0");
-        require(ownerOf(tokenID) == msg.sender, "MarketNFT: you're not the owner of the NFT");
+        require(price > 0, Errors.ERROR_PRICE_ZERO);
+        require(ownerOf(tokenID) == msg.sender, Errors.ERROR_NOT_OWNER);
 
         approve(address(this), tokenID);
         transferFrom(msg.sender, address(this), tokenID);
@@ -32,8 +34,8 @@ contract MarketNFT is ERC721URIStorage, Ownable {
 
     function buyNFT(uint256 tokenID) public payable {
         NFTListing memory listing = _listings[tokenID];
-        require(listing.price > 0, "MarketNFT: NFT not for sale");
-        require(msg.value == listing.price, "MarketNFT: the price paid is not the value of the NFT");
+        require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
+        require(msg.value == listing.price, Errors.ERROR_PRICE_PAID);
 
         (bool success, uint256 ethToSeller) = listing.price.tryMul(95);
         assert(success);
@@ -45,8 +47,8 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         (bool successOwner,) = payable(address(this)).call{value: ethToOwner}("");
         (bool successSeller,) = payable(listing.seller).call{value: ethToSeller}("");
 
-        if(!successOwner || !successSeller){
-            revert("MarketNFT: transfer failed");
+        if (!successOwner || !successSeller) {
+            revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
         transferFrom(address(this), msg.sender, tokenID);
@@ -55,8 +57,8 @@ contract MarketNFT is ERC721URIStorage, Ownable {
 
     function cancelListing(uint256 tokenID) public {
         NFTListing memory listing = _listings[tokenID];
-        require(listing.price > 0, "MarketNFT: NFT is not for sale");
-        require(listing.seller == msg.sender, "MarketNFT: you're not the seller of the NFT");
+        require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
+        require(listing.seller == msg.sender, Errors.ERROR_NOT_SELLER);
 
         transferFrom(address(this), msg.sender, tokenID);
         clearListing(tokenID);
@@ -65,11 +67,11 @@ contract MarketNFT is ERC721URIStorage, Ownable {
     function withdrawFunds() public onlyOwner {
         uint256 balance = address(this).balance;
 
-        require(balance > 0, "NFTMarket: balance is zero");
+        require(balance > 0, Errors.ERROR_BALANCE_ZERO);
 
         (bool success,) = payable(msg.sender).call{value: balance}("");
-        if(!success){
-            revert("MarketNFT: transfer failed");
+        if (!success) {
+            revert(Errors.ERROR_TRANSFER_FAILED);
         }
     }
 
