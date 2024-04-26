@@ -3,6 +3,7 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import {NFT} from "./NFT.sol";
 
     struct NFTListing {
@@ -22,6 +23,8 @@ contract MarketNFT is ERC721URIStorage, Ownable {
 
     function listNFT(uint256 tokenID, uint256 price) public {
         require(price > 0, "MarketNFT: price must be greater than 0");
+        require(ownerOf(tokenID) == msg.sender, "MarketNFT: you're not the owner of the NFT");
+
         approve(address(this), tokenID);
         transferFrom(msg.sender, address(this), tokenID);
         _listings[tokenID] = NFTListing(price, msg.sender);
@@ -31,7 +34,21 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         NFTListing memory listing = _listings[tokenID];
         require(listing.price > 0, "MarketNFT: NFT not for sale");
         require(msg.value == listing.price, "MarketNFT: the price paid is not the value of the NFT");
-        payable(listing.seller).transfer(listing.price * 95 / 100); // !! we should use save-math !!
+
+        (bool success, uint256 ethToSeller) = listing.price.tryMul(95);
+        assert(success);
+        (success, ethToSeller) = ethToSeller.tryDiv(100);
+        assert(success);
+        (bool success, uint256 ethToOwner) = listing.price.trySub(ethToSeller);
+        assert(success);
+
+        (bool successOwner,) = payable(address(this)).call{value: ethToOwner}("");
+        (bool successSeller,) = payable(listing.seller).call{value: ethToSeller}("");
+
+        if(!successOwner || !successSeller){
+            revert("MarketNFT: transfer failed");
+        }
+
         transferFrom(address(this), msg.sender, tokenID);
         clearListing(tokenID);
     }
@@ -40,6 +57,7 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         NFTListing memory listing = _listings[tokenID];
         require(listing.price > 0, "MarketNFT: NFT is not for sale");
         require(listing.seller == msg.sender, "MarketNFT: you're not the seller of the NFT");
+
         transferFrom(address(this), msg.sender, tokenID);
         clearListing(tokenID);
     }
@@ -48,7 +66,11 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         uint256 balance = address(this).balance;
 
         require(balance > 0, "NFTMarket: balance is zero");
-        payable(msg.sender).transfer(balance);
+
+        (bool success,) = payable(msg.sender).call{value: balance}("");
+        if(!success){
+            revert("MarketNFT: transfer failed");
+        }
     }
 
     function clearListing(uint256 tokenID) private {
