@@ -37,11 +37,12 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(msg.value == listing.price, Errors.ERROR_PRICE_PAID);
 
-        (bool success, uint256 ethToSeller) = listing.price.tryMul(95);
+        (bool success, uint256 ethToSeller) = Math.tryMul(listing.price, 95);
         assert(success);
-        (success, ethToSeller) = ethToSeller.tryDiv(100);
+        (success, ethToSeller) = Math.tryDiv(ethToSeller, 100);
         assert(success);
-        (bool success, uint256 ethToOwner) = listing.price.trySub(ethToSeller);
+        uint256 ethToOwner;
+        (success, ethToOwner) = Math.trySub(listing.price, ethToSeller);
         assert(success);
 
         (bool successOwner,) = payable(address(this)).call{value: ethToOwner}("");
