@@ -1,18 +1,16 @@
-import { expect } from "chai";
+import {expect} from "chai";
 import hre from "hardhat";
-import {NFT} from "../typechain-types";
 
-describe("TestNFT", () => {
-    it("should mint a new NFT", async () => {
-        const tokenUri: string = "https://example.org"
-        const address: string = "0x1234567890123456789012345678901234567890"
+describe("Validation mint", () => {
+    it("Should mint a new NFT", async () => {
+        const tokenUri = "https://example.org";
+        const address = "0x" + "1".repeat(40);
 
-        const contract: Promise<NFT> = hre.ethers.deployContract("NFT", [])
-        console.log("TEST3")
+        const contract = await hre.ethers.deployContract("NFT");
+        const response = await contract.mint(address, tokenUri);
+        await response.wait();
 
-        await contract.then(async (nft) => {
-            expect(await nft.mint(address, tokenUri)).to.equal(0)
-        })
-        console.log("TEST6")
-    })
+        expect(await contract.ownerOf(0)).to.be.equal(address);
+        expect(await contract.tokenURI(0)).to.be.equal(tokenUri);
+    });
 })
