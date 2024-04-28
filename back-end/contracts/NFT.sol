@@ -9,9 +9,10 @@ contract NFT is ERC721URIStorage{
 
     constructor() ERC721(Constants.NFT_NAME, Constants.NFT_SYMBOL){}
 
-    function mint(address to, string memory tokenURI) public {
+    function mint(address to, string memory tokenURI) public returns (uint256){
         uint256 tokenId = _nextTokenId++;
         _mint(to, tokenId);
         _setTokenURI(tokenId, tokenURI);
+        return tokenId;
     }
 }

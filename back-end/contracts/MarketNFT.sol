@@ -16,20 +16,30 @@ import "./Errors.sol";
 contract MarketNFT is ERC721URIStorage, Ownable {
 
     mapping(uint256 => NFTListing) private _listings;
+    mapping(uint256 => address) private _NFTOwners;
     uint8 private _feePercentage = 5;
 
     constructor() ERC721(Constants.MARKET_NFT_NAME, Constants.MARKET_NFT_SYMBOL) Ownable(msg.sender){}
 
-    function mint(address to, string memory tokenURI) public {
-        new NFT().mint(to, tokenURI);
+    function mintAndList(address to, string memory tokenURI, uint256 price) public {
+        uint256 tokenId = mint(to, tokenURI);
+        listNFT(tokenId, price);
+    }
+
+    function mint(address to, string memory tokenURI) public returns (uint256){
+        NFT nft = new NFT();
+        uint256 tokenId = nft.mint(to, tokenURI);
+        _NFTOwners[tokenId] = to;
+        return tokenId;
     }
 
     function listNFT(uint256 tokenID, uint256 price) public {
         require(price > 0, Errors.ERROR_PRICE_ZERO);
-        require(ownerOf(tokenID) == msg.sender, Errors.ERROR_NOT_OWNER);
+        require(_NFTOwners[tokenID] == msg.sender, Errors.ERROR_NOT_OWNER);
 
         approve(address(this), tokenID);
         transferFrom(msg.sender, address(this), tokenID);
+        _NFTOwners[tokenID] = address(this);
         _listings[tokenID] = NFTListing(price, msg.sender);
     }
 
@@ -47,13 +57,18 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         assert(success);
 
         (bool successOwner,) = payable(address(this)).call{value: ethToOwner}("");
+        if(!successOwner) {
+            revert(Errors.ERROR_TRANSFER_FAILED);
+        }
+
         (bool successSeller,) = payable(listing.seller).call{value: ethToSeller}("");
 
-        if (!successOwner || !successSeller) {
+        if (!successSeller) {
             revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
         transferFrom(address(this), msg.sender, tokenID);
+        _NFTOwners[tokenID] = msg.sender;
         clearListing(tokenID);
     }
 
@@ -63,6 +78,7 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         require(listing.seller == msg.sender, Errors.ERROR_NOT_SELLER);
 
         transferFrom(address(this), msg.sender, tokenID);
+        _NFTOwners[tokenID] = msg.sender;
         clearListing(tokenID);
     }
 
