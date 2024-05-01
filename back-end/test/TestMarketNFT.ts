@@ -10,7 +10,7 @@ let market: MarketNFT
 const TOKEN_ID = 0;
 const PRICE = 10;
 const URL = "https://example.org";
-let owner : HardhatEthersSigner, other: HardhatEthersSigner;
+let owner: HardhatEthersSigner, other: HardhatEthersSigner;
 
 beforeEach(async function () {
     market = await hre.ethers.deployContract("MarketNFT");
@@ -95,5 +95,39 @@ describe("Validation cancel listing", async () => {
 
         await expect(market.cancelListing(TOKEN_ID)).to.not.be.reverted;
         await expect(market.listNFT(TOKEN_ID, PRICE)).to.not.be.reverted;
+    })
+})
+
+describe("Validation withdraw funds", async () => {
+    it("Should revert when the sender is not the owner of the contract", async () => {
+        await expect(market.connect(other).withdrawFunds()).to.be.revertedWithCustomError(market, "OwnableUnauthorizedAccount");
+    })
+
+    it("Should revert when there are no funds to withdraw", async () => {
+        await expect(market.withdrawFunds()).to.be.revertedWith("Balance must be greater than 0");
+    })
+
+    it("Should withdraw funds when funds are present", async () => {
+        await market.mintAndList(URL, PRICE);
+        await market.connect(other).buyNFT(TOKEN_ID, {value: PRICE});
+
+        await expect(market.withdrawFunds()).to.changeEtherBalance(market, -1);
+    })
+})
+
+describe("Validation update fee percentage", async () => {
+    it("Should revert when the sender is not the owner of the contract", async () => {
+        await expect(market.connect(other).updateFeePercentage(1)).to.be.revertedWithCustomError(market, "OwnableUnauthorizedAccount");
+    })
+
+    it("Should revert when the fee percentage is greater than 100", async () => {
+        await expect(market.updateFeePercentage(101)).to.be.revertedWith("Fee percentage must be less than or equal to 100");
+    })
+
+    it("Should update fee percentage when everything is ok", async () => {
+        await expect(market.updateFeePercentage(20)).to.not.be.reverted;
+
+        await market.mintAndList(URL, PRICE);
+        await expect(market.connect(other).buyNFT(TOKEN_ID, {value: PRICE})).to.changeEtherBalance(market, 2);
     })
 })

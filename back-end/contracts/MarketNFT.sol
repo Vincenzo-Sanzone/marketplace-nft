@@ -96,6 +96,7 @@ contract MarketNFT is Ownable {
     }
 
     function updateFeePercentage(uint8 feePercentage) public onlyOwner {
+        require(feePercentage <= 100, Errors.ERROR_FEE_PERCENTAGE);
         _feePercentage = feePercentage;
     }
 }
