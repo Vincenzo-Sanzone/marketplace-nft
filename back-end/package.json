@@ -1,5 +1,13 @@
 {
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.3"
+  },
+  "scripts": {
+    "test": "npx hardhat test",
+    "coverage": "npx hardhat coverage"
   }
 }
