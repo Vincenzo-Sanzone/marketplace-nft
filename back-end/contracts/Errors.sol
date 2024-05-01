@@ -11,4 +11,5 @@ library Errors {
     string internal constant ERROR_PRICE_ZERO = "Price must be greater than 0";
     string internal constant ERROR_BALANCE_ZERO = "Balance must be greater than 0";
     string internal constant ERROR_ONLY_MARKET = "Only the market can approve the transfer";
+    string internal constant ERROR_YOU_ARE_OWNER = "The owner can't buy his own NFT";
 }

@@ -47,19 +47,12 @@ contract MarketNFT is Ownable {
         NFTListing memory listing = _listings[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(msg.value == listing.price, Errors.ERROR_PRICE_PAID);
+        require(msg.sender != listing.seller, Errors.ERROR_YOU_ARE_OWNER);
 
         (bool success, uint256 ethToSeller) = Math.tryMul(listing.price, Constants.PERCENTAGE_BASE - _feePercentage);
         assert(success);
         (success, ethToSeller) = Math.tryDiv(ethToSeller, Constants.PERCENTAGE_BASE);
         assert(success);
-        uint256 ethToOwner;
-        (success, ethToOwner) = Math.trySub(listing.price, ethToSeller);
-        assert(success);
-
-        (bool successOwner,) = payable(address(this)).call{value: ethToOwner}("");
-        if (!successOwner) {
-            revert(Errors.ERROR_TRANSFER_FAILED);
-        }
 
         (bool successSeller,) = payable(listing.seller).call{value: ethToSeller}("");
 
