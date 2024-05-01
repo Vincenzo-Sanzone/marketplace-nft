@@ -8,23 +8,26 @@ beforeEach(async function () {
     market = await hre.ethers.deployContract("MarketNFT")
 })
 
-describe("Deployment", () => {
-    it("Should track market's name", async () => {
-        expect(await market.name()).to.be.equal("MarketNFT")
+describe("Validation mint and list", () => {
+    it("Should revert when price equal to 0", async () => {
+        const url = "https://example.org";
+        const price = 0;
+        const [owner] = await hre.ethers.getSigners();
+
+        await expect(market.mintAndList(owner.address, url, price)).to.be.revertedWith("Price must be greater than 0");
     })
 
-    it("Should track market's symbol", async () => {
-        expect(await market.symbol()).to.be.equal("NFT")
+    it("Should list nft when everything is ok", async () => {
+        const url = "https://example.org";
+        const price = 10;
+
+        const [owner] = await hre.ethers.getSigners();
+
+        await expect(market.mintAndList(owner.address, url, price)).to.not.be.reverted;
     })
 })
 
 describe("Validation list NFT", () => {
-    it("Should revert when price equal to 0", async () => {
-        const tokenId = 0;
-        const price = 0;
-
-        await expect(market.listNFT(tokenId, price)).to.be.revertedWith("Price must be greater than 0");
-    })
 
     it("Should revert when token id doesn't exist", async () => {
         const tokenId = 0;
@@ -42,16 +45,5 @@ describe("Validation list NFT", () => {
         await market.mint(other.address, "https://example.org");
 
         await expect(market.listNFT(tokenId, price)).to.be.revertedWith("You're not the owner of the NFT");
-    })
-
-    it("Should list nft when everything is ok", async () => {
-        const tokenId = 0;
-        const price = 10;
-
-        const [owner] = await hre.ethers.getSigners();
-
-        await market.mint(owner.address, "https://example.org");
-
-        await expect(market.listNFT(tokenId, price)).to.not.be.reverted;
     })
 })

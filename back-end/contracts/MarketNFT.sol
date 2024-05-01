@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import {NFT} from "./NFT.sol";
@@ -13,13 +12,13 @@ import "./Errors.sol";
         address seller;
     }
 
-contract MarketNFT is ERC721URIStorage, Ownable {
+contract MarketNFT is Ownable {
 
     mapping(uint256 => NFTListing) private _listings;
     mapping(uint256 => NFT) private _AllNFT;
     uint8 private _feePercentage = 5;
 
-    constructor() ERC721(Constants.MARKET_NFT_NAME, Constants.MARKET_NFT_SYMBOL) Ownable(msg.sender){}
+    constructor() Ownable(msg.sender){}
 
     function mintAndList(address to, string memory tokenURI, uint256 price) public {
         uint256 tokenId = mint(to, tokenURI);
@@ -68,7 +67,8 @@ contract MarketNFT is ERC721URIStorage, Ownable {
             revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
-        transferFrom(address(this), msg.sender, tokenId);
+        NFT nft = _AllNFT[tokenId];
+        nft.transferFrom(address(this), msg.sender, tokenId);
         clearListing(tokenId);
     }
 
@@ -76,8 +76,9 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         NFTListing memory listing = _listings[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(listing.seller == msg.sender, Errors.ERROR_NOT_SELLER);
+        NFT nft = _AllNFT[tokenId];
 
-        transferFrom(address(this), msg.sender, tokenId);
+        nft.transferFrom(address(this), msg.sender, tokenId);
         clearListing(tokenId);
     }
 
