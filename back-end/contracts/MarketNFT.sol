@@ -15,31 +15,37 @@ import "./Errors.sol";
 contract MarketNFT is Ownable {
 
     mapping(uint256 => NFTListing) private _listings;
-    mapping(uint256 => NFT) private _AllNFT;
     uint8 private _feePercentage = 5;
+    NFT private immutable _nft;
 
-    constructor() Ownable(msg.sender){}
+    constructor() Ownable(msg.sender){
+        _nft = new NFT(address(this));
+    }
 
-    function mintAndList(address to, string memory tokenURI, uint256 price) public {
-        uint256 tokenId = mint(to, tokenURI);
+    function mintAndList(string memory tokenURI, uint256 price) public {
+        uint256 tokenId = mint(msg.sender, tokenURI);
         listNFT(tokenId, price);
     }
 
     function mint(address to, string memory tokenURI) public returns (uint256){
-        NFT nft = new NFT(address(this));
-        uint256 tokenId = nft.mint(to, tokenURI);
-        _AllNFT[tokenId] = nft;
+        uint256 tokenId = _nft.mint(to, tokenURI);
         return tokenId;
     }
 
     function listNFT(uint256 tokenId, uint256 price) public {
         require(price > 0, Errors.ERROR_PRICE_ZERO);
-        NFT nft = _AllNFT[tokenId];
-        require(address(nft) != address(0), Errors.ERROR_TOKEN_NOT_PRESENT);
-        require(nft.ownerOf(tokenId) == msg.sender, Errors.ERROR_NOT_OWNER);
 
-        nft.getApproval(tokenId);
-        nft.transferFrom(msg.sender, address(this), tokenId);
+        address nftOwner;
+        try _nft.ownerOf(tokenId) returns (address _nftOwner) {
+            nftOwner = _nftOwner;
+        } catch {
+            revert(Errors.ERROR_TOKEN_NOT_PRESENT);
+        }
+
+        require(nftOwner == msg.sender, Errors.ERROR_NOT_OWNER);
+
+        _nft.getApproval(tokenId);
+        _nft.transferFrom(msg.sender, address(this), tokenId);
         _listings[tokenId] = NFTListing(price, msg.sender);
     }
 
@@ -60,8 +66,7 @@ contract MarketNFT is Ownable {
             revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
-        NFT nft = _AllNFT[tokenId];
-        nft.transferFrom(address(this), msg.sender, tokenId);
+        _nft.transferFrom(address(this), msg.sender, tokenId);
         clearListing(tokenId);
     }
 
@@ -69,9 +74,8 @@ contract MarketNFT is Ownable {
         NFTListing memory listing = _listings[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(listing.seller == msg.sender, Errors.ERROR_NOT_SELLER);
-        NFT nft = _AllNFT[tokenId];
 
-        nft.transferFrom(address(this), msg.sender, tokenId);
+        _nft.transferFrom(address(this), msg.sender, tokenId);
         clearListing(tokenId);
     }
 
@@ -89,10 +93,6 @@ contract MarketNFT is Ownable {
     function clearListing(uint256 tokenId) private {
         _listings[tokenId].price = 0;
         _listings[tokenId].seller = address(0);
-    }
-
-    function getListingByTokenID(uint256 tokenId) external view returns (uint256, address){
-        return (_listings[tokenId].price, _listings[tokenId].seller);
     }
 
     function updateFeePercentage(uint8 feePercentage) public onlyOwner {

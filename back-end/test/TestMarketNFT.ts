@@ -14,18 +14,15 @@ describe("Validation mint and list", () => {
     it("Should revert when price equal to 0", async () => {
         const url = "https://example.org";
         const price = 0;
-        const [owner] = await hre.ethers.getSigners();
 
-        await expect(market.mintAndList(owner.address, url, price)).to.be.revertedWith("Price must be greater than 0");
+        await expect(market.mintAndList(url, price)).to.be.revertedWith("Price must be greater than 0");
     })
 
     it("Should list nft when everything is ok", async () => {
         const url = "https://example.org";
         const price = 10;
 
-        const [owner] = await hre.ethers.getSigners();
-
-        await expect(market.mintAndList(owner.address, url, price)).to.not.be.reverted;
+        await expect(market.mintAndList(url, price)).to.not.be.reverted;
     })
 })
 
@@ -62,9 +59,7 @@ describe("Validation buy NFT", () => {
         const url = "https://example.org";
         const price = 10;
 
-        const [owner] = await hre.ethers.getSigners();
-
-        await market.mintAndList(owner.address, url, price);
+        await market.mintAndList(url, price);
 
         await expect(market.buyNFT(0, {value: offeredPrice})).to.be.revertedWith("The price paid is not the value of the NFT");
     })
@@ -73,9 +68,7 @@ describe("Validation buy NFT", () => {
         const url = "https://example.org";
         const price = 10;
 
-        const [owner] = await hre.ethers.getSigners();
-
-        await market.mintAndList(owner.address, url, price);
+        await market.mintAndList(url, price);
 
         await expect(market.buyNFT(0, {value: 10})).to.be.revertedWith("The owner can't buy his own NFT");
     })
@@ -86,7 +79,7 @@ describe("Validation buy NFT", () => {
 
         const [owner, other] = await hre.ethers.getSigners();
 
-        await market.mintAndList(owner.address, url, price);
+        await market.mintAndList(url, price);
 
         await expect(market.connect(other).buyNFT(0, {value: 10})).to.changeEtherBalances([owner, other, market], [price - 1, -price, 1])
     })
@@ -97,7 +90,7 @@ describe("Validation buy NFT", () => {
 
         const [owner, other] = await hre.ethers.getSigners();
 
-        await market.mintAndList(owner.address, url, price);
+        await market.mintAndList(url, price);
 
         await expect(market.connect(other).buyNFT(0, {value: 10})).to.not.reverted;
         await expect(market.buyNFT(0)).to.be.revertedWith("NFT is not for sale");
