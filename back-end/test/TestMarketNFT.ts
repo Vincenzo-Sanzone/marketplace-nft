@@ -68,8 +68,8 @@ describe("Validation buy NFT", () => {
     it("Should revert when another request is sent after buying ", async () => {
         await market.mintAndList(URL, PRICE);
 
-        await expect(market.connect(other).buyNFT(0, {value: 10})).to.not.reverted;
-        await expect(market.buyNFT(0)).to.be.revertedWith("NFT is not for sale");
+        await expect(market.connect(other).buyNFT(TOKEN_ID, {value: PRICE})).to.not.reverted;
+        await expect(market.buyNFT(TOKEN_ID)).to.be.revertedWith("NFT is not for sale");
     })
 })
 
@@ -111,7 +111,7 @@ describe("Validation withdraw funds", async () => {
         await market.mintAndList(URL, PRICE);
         await market.connect(other).buyNFT(TOKEN_ID, {value: PRICE});
 
-        await expect(market.withdrawFunds()).to.changeEtherBalance(market, -1);
+        await expect(market.withdrawFunds()).to.changeEtherBalances([owner, market], [1, -1]);
     })
 })
 
