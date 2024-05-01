@@ -16,7 +16,7 @@ import "./Errors.sol";
 contract MarketNFT is ERC721URIStorage, Ownable {
 
     mapping(uint256 => NFTListing) private _listings;
-    mapping(uint256 => address) private _NFTOwners;
+    mapping(uint256 => NFT) private _AllNFT;
     uint8 private _feePercentage = 5;
 
     constructor() ERC721(Constants.MARKET_NFT_NAME, Constants.MARKET_NFT_SYMBOL) Ownable(msg.sender){}
@@ -27,24 +27,25 @@ contract MarketNFT is ERC721URIStorage, Ownable {
     }
 
     function mint(address to, string memory tokenURI) public returns (uint256){
-        NFT nft = new NFT();
+        NFT nft = new NFT(address(this));
         uint256 tokenId = nft.mint(to, tokenURI);
-        _NFTOwners[tokenId] = to;
+        _AllNFT[tokenId] = nft;
         return tokenId;
     }
 
-    function listNFT(uint256 tokenID, uint256 price) public {
+    function listNFT(uint256 tokenId, uint256 price) public {
         require(price > 0, Errors.ERROR_PRICE_ZERO);
-        require(_NFTOwners[tokenID] == msg.sender, Errors.ERROR_NOT_OWNER);
+        NFT nft = _AllNFT[tokenId];
+        require(address(nft) != address(0), Errors.ERROR_TOKEN_NOT_PRESENT);
+        require(nft.ownerOf(tokenId) == msg.sender, Errors.ERROR_NOT_OWNER);
 
-        approve(address(this), tokenID);
-        transferFrom(msg.sender, address(this), tokenID);
-        _NFTOwners[tokenID] = address(this);
-        _listings[tokenID] = NFTListing(price, msg.sender);
+        nft.getApproval(tokenId);
+        nft.transferFrom(msg.sender, address(this), tokenId);
+        _listings[tokenId] = NFTListing(price, msg.sender);
     }
 
-    function buyNFT(uint256 tokenID) public payable {
-        NFTListing memory listing = _listings[tokenID];
+    function buyNFT(uint256 tokenId) public payable {
+        NFTListing memory listing = _listings[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(msg.value == listing.price, Errors.ERROR_PRICE_PAID);
 
@@ -57,7 +58,7 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         assert(success);
 
         (bool successOwner,) = payable(address(this)).call{value: ethToOwner}("");
-        if(!successOwner) {
+        if (!successOwner) {
             revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
@@ -67,19 +68,17 @@ contract MarketNFT is ERC721URIStorage, Ownable {
             revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
-        transferFrom(address(this), msg.sender, tokenID);
-        _NFTOwners[tokenID] = msg.sender;
-        clearListing(tokenID);
+        transferFrom(address(this), msg.sender, tokenId);
+        clearListing(tokenId);
     }
 
-    function cancelListing(uint256 tokenID) public {
-        NFTListing memory listing = _listings[tokenID];
+    function cancelListing(uint256 tokenId) public {
+        NFTListing memory listing = _listings[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(listing.seller == msg.sender, Errors.ERROR_NOT_SELLER);
 
-        transferFrom(address(this), msg.sender, tokenID);
-        _NFTOwners[tokenID] = msg.sender;
-        clearListing(tokenID);
+        transferFrom(address(this), msg.sender, tokenId);
+        clearListing(tokenId);
     }
 
     function withdrawFunds() public onlyOwner {
@@ -93,13 +92,13 @@ contract MarketNFT is ERC721URIStorage, Ownable {
         }
     }
 
-    function clearListing(uint256 tokenID) private {
-        _listings[tokenID].price = 0;
-        _listings[tokenID].seller = address(0);
+    function clearListing(uint256 tokenId) private {
+        _listings[tokenId].price = 0;
+        _listings[tokenId].seller = address(0);
     }
 
-    function getListingByTokenID(uint256 tokenID) public view returns (uint256, address){
-        return (_listings[tokenID].price, _listings[tokenID].seller);
+    function getListingByTokenID(uint256 tokenId) external view returns (uint256, address){
+        return (_listings[tokenId].price, _listings[tokenId].seller);
     }
 
     function updateFeePercentage(uint8 feePercentage) public onlyOwner {
