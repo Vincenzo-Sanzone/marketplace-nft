@@ -192,3 +192,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+/back-end/artifacts/
+/back-end/cache/
+/back-end/typechain-types/
+/back-end/coverage.json
