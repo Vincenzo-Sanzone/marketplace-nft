@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
-    "mocha-param": "^2.0.1"
+    "mocha-param": "^2.0.1",
+    "ethers": "^6.12.1"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
@@ -9,6 +10,8 @@
   },
   "scripts": {
     "test": "npx hardhat test",
-    "coverage": "npx hardhat coverage"
+    "coverage": "npx hardhat coverage",
+    "local node": "npx hardhat node",
+    "local deploy": "npx hardhat ignition deploy ./ignition/modules/NFTModule.ts --network localhost"
   }
 }

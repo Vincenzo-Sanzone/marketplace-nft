@@ -196,3 +196,4 @@ $RECYCLE.BIN/
 /back-end/cache/
 /back-end/typechain-types/
 /back-end/coverage.json
+/back-end/ignition/deployments/

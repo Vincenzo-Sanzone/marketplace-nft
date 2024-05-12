@@ -1,10 +1,10 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import MarketNFTModule from "./MarketNFTModule";
 
 
 const NFTModule = buildModule("NFTModule", (m) => {
-    const addressMarket = m.getParameter("market", "0x5FbDB2315678afecb367f032d93F642f64180aa3");
-    const NFT = m.contract("NFT", [addressMarket]);
-   // const MarketNFT = m.contract("MarketNFT");
+    const market = m.useModule(MarketNFTModule)
+    const NFT = m.contract("NFT", [market.MarketNFT]);
     return { NFT};
 });
 
