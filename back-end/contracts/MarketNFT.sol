@@ -14,6 +14,7 @@ import "./Errors.sol";
 
 contract MarketNFT is Ownable {
 
+    event Listed(string message);
     mapping(uint256 => NFTListing) private _listings;
     uint8 private _feePercentage = 5;
     NFT private immutable _nft;
@@ -47,6 +48,7 @@ contract MarketNFT is Ownable {
         _nft.getApproval(tokenId);
         _nft.transferFrom(msg.sender, address(this), tokenId);
         _listings[tokenId] = NFTListing(price, msg.sender);
+        emit Listed("DONE");
     }
 
     function buyNFT(uint256 tokenId) public payable {
