@@ -101,4 +101,9 @@ contract MarketNFT is Ownable {
         require(feePercentage <= 100, Errors.ERROR_FEE_PERCENTAGE);
         _feePercentage = feePercentage;
     }
+
+    function getListing(uint256 tokenId) public view returns (uint256, address) {
+        NFTListing memory listing = _listings[tokenId];
+        return (listing.price, listing.seller);
+    }
 }

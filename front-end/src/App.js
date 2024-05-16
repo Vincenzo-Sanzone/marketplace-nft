@@ -1,25 +1,58 @@
 import { MetaMaskButton } from "@metamask/sdk-react-ui";
-import React from "react";
+import React, {useState} from "react";
 import { Contract, ethers } from  "ethers";
 
 export const App = () => {
+   // const tokeID = 0;
+    const [connectWithMetaMask, setconnectWithMetaMask] = useState(false);
+
+    const showMetaMaskButton = () => {
+        setconnectWithMetaMask(true);
+    };
+
     return (
         <div className="App">
-            <MetaMaskButton theme={"light"} color="white"></MetaMaskButton>
-            <button onClick={() => call()}>Click me</button>
+            { !connectWithMetaMask && <button onClick={showMetaMaskButton} >connect With Meta Mask</button> }
+            <br/>
+            {connectWithMetaMask && <ViewMetaMaskButton/>}
+            <br/>
+            <br/>
+            {/*<MetaMaskButton theme={"light"} color="white"></MetaMaskButton>*/}
+            <button onClick={() => call()}>List & mint NFT</button>
+            <br/>
+            <br/>
+            <button onClick={() => showListedNFT()}>show Listed NFT</button>
+
         </div>
     );
 };
+
+async function showListedNFT(){
+    console.log(" showListedNFT CLICKED\n");
+    const contract = getContract();
+    const result = await contract.getListing(0); // for now tokeId = 0
+    console.log("i am here");
+    const price = result[0];
+    const seller = result[1];
+    console.log("Price:", price);
+    console.log("Seller:", seller);
+}
+
+function ViewMetaMaskButton(){
+    return (<MetaMaskButton theme={"light"} color="white"></MetaMaskButton>);
+}
 
 async function call(){
     console.log("CLICKED");
     const contract = getContract();
 
-    await contract.mintAndList("https://gateway.pinata.cloud/ipfs/QmZQ5", 10);
-
+     await contract.mintAndList("https://gateway.pinata.cloud/ipfs/QmZQ5", 10);
+    console.log("BEFORE CONTRACT ON\n");
     contract.on("Listed", () => {
+        console.log("INSIDE CONTRACT ON\n");
         console.log("DONE");
     })
+    console.log("AFTER CONTRACT ON\n");
 }
 
 export default function getContract() {
