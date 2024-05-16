@@ -1,34 +1,29 @@
-import { MetaMaskButton } from "@metamask/sdk-react-ui";
-import React, {useState} from "react";
-import { ethers } from  "ethers";
+import {MetaMaskButton, useAccount} from "@metamask/sdk-react-ui";
+import React from "react";
+import {ethers} from "ethers";
 import Button from '@mui/material/Button';
 
 export const App = () => {
-   // const tokeID = 0;
-    const [connectWithMetaMask, setconnectWithMetaMask] = useState(false);
-
-    const showMetaMaskButton = () => {
-        setconnectWithMetaMask(true);
-    };
+    // const tokeID = 0;
+    const account = useAccount();
 
     return (
         <div className="App">
-            { !connectWithMetaMask && <Button onClick={showMetaMaskButton} >connect With Meta Mask</Button> }
-            <br/>
-            {connectWithMetaMask && <ViewMetaMaskButton/>}
-            <br/>
-            <br/>
-            {/*<MetaMaskButton theme={"light"} color="white"></MetaMaskButton>*/}
-            <Button onClick={() => call()}>List & mint NFT</Button>
-            <br/>
-            <br/>
-            <Button onClick={() => showListedNFT()}>show Listed NFT</Button>
 
+            <MetaMaskButton></MetaMaskButton>
+            <br/>
+            <br/>
+            <Button disabled={!account.isConnected} onClick={() => call()}>List & mint NFT</Button>
+            <br/>
+            <br/>
+            <Button disabled={!account.isConnected} onClick={() => showListedNFT()}>show Listed NFT</Button>
+            <br/>
+            <br/>
         </div>
     );
 };
 
-async function showListedNFT(){
+async function showListedNFT() {
     console.log(" showListedNFT CLICKED\n");
     const contract = getContract();
     const result = await contract.getListing(0); // for now tokeId = 0
@@ -39,15 +34,11 @@ async function showListedNFT(){
     console.log("Seller:", seller);
 }
 
-function ViewMetaMaskButton(){
-    return (<MetaMaskButton theme={"light"} color="white"></MetaMaskButton>);
-}
-
-async function call(){
+async function call() {
     console.log("CLICKED");
     const contract = getContract();
 
-     await contract.mintAndList("https://gateway.pinata.cloud/ipfs/QmZQ5", 10);
+    await contract.mintAndList("https://gateway.pinata.cloud/ipfs/QmZQ5", 10);
     console.log("BEFORE CONTRACT ON\n");
     contract.on("Listed", () => {
         console.log("INSIDE CONTRACT ON\n");
