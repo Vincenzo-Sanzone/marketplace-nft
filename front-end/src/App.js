@@ -1,6 +1,7 @@
 import { MetaMaskButton } from "@metamask/sdk-react-ui";
 import React, {useState} from "react";
-import { Contract, ethers } from  "ethers";
+import { ethers } from  "ethers";
+import Button from '@mui/material/Button';
 
 export const App = () => {
    // const tokeID = 0;
@@ -12,16 +13,16 @@ export const App = () => {
 
     return (
         <div className="App">
-            { !connectWithMetaMask && <button onClick={showMetaMaskButton} >connect With Meta Mask</button> }
+            { !connectWithMetaMask && <Button onClick={showMetaMaskButton} >connect With Meta Mask</Button> }
             <br/>
             {connectWithMetaMask && <ViewMetaMaskButton/>}
             <br/>
             <br/>
             {/*<MetaMaskButton theme={"light"} color="white"></MetaMaskButton>*/}
-            <button onClick={() => call()}>List & mint NFT</button>
+            <Button onClick={() => call()}>List & mint NFT</Button>
             <br/>
             <br/>
-            <button onClick={() => showListedNFT()}>show Listed NFT</button>
+            <Button onClick={() => showListedNFT()}>show Listed NFT</Button>
 
         </div>
     );
