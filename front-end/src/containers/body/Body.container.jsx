@@ -1,30 +1,17 @@
 import {useAccount} from "@metamask/sdk-react-ui";
-import React from "react";
 import {ethers} from "ethers";
-import Button from '@mui/material/Button';
-import {Header} from "./component/header/Header";
+import React from "react";
+import {BodyComponent} from "../../component/body/Body.component";
 
-export const App = () => {
-    // const tokeID = 0;
+export const BodyContainer = () => {
     const account = useAccount();
 
     return (
-        <div>
-
-            <Header />
-            <br/>
-            <br/>
-            <Button disabled={!account.isConnected} onClick={() => call()}>List & mint NFT</Button>
-            <br/>
-            <br/>
-            <Button disabled={!account.isConnected} onClick={() => showListedNFT()}>show Listed NFT</Button>
-            <br/>
-            <br/>
-        </div>
+        <BodyComponent isConnected={account.isConnected} onList={onList} onShowListed={onShowListed}/>
     );
-};
+}
 
-async function showListedNFT() {
+async function onShowListed() {
     console.log(" showListedNFT CLICKED\n");
     const contract = getContract();
     const result = await contract.getListing(0); // for now tokeId = 0
@@ -35,7 +22,7 @@ async function showListedNFT() {
     console.log("Seller:", seller);
 }
 
-async function call() {
+async function onList() {
     console.log("CLICKED");
     const contract = getContract();
 
@@ -48,11 +35,11 @@ async function call() {
     console.log("AFTER CONTRACT ON\n");
 }
 
-export default function getContract() {
+function getContract() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
 
-    const abi = require("./contracts/MarketplaceNFT.json").abi;
+    const abi = require("../../contracts/MarketplaceNFT.json").abi;
 
     console.log(abi);
     const contract = new ethers.Contract(

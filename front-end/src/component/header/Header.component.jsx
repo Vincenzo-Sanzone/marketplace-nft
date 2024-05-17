@@ -1,9 +1,9 @@
 import React from 'react';
 import {AppBar, Toolbar, Typography} from '@mui/material';
 import {MetaMaskButton} from "@metamask/sdk-react-ui";
-import "../../styles/css/Header.css";
+import "../../styles/css/Header.css"
 
-export const Header = () => {
+export const HeaderComponent = () => {
     return (
         <AppBar position="static">
             <Toolbar>
