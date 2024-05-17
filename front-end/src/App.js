@@ -1,16 +1,17 @@
-import {MetaMaskButton, useAccount} from "@metamask/sdk-react-ui";
+import {useAccount} from "@metamask/sdk-react-ui";
 import React from "react";
 import {ethers} from "ethers";
 import Button from '@mui/material/Button';
+import {Header} from "./component/header/Header";
 
 export const App = () => {
     // const tokeID = 0;
     const account = useAccount();
 
     return (
-        <div className="App">
+        <div>
 
-            <MetaMaskButton></MetaMaskButton>
+            <Header />
             <br/>
             <br/>
             <Button disabled={!account.isConnected} onClick={() => call()}>List & mint NFT</Button>
