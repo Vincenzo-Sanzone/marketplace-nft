@@ -2,19 +2,31 @@ import {useAccount} from "@metamask/sdk-react-ui";
 import {ethers} from "ethers";
 import React from "react";
 import {BodyComponent} from "../../component/body/Body.component";
+import {SnackAlert} from "../../component/utils/SnackAlert";
 
 export const BodyContainer = () => {
     const account = useAccount();
+    const [openListSnack, setOpenListSnack] = React.useState(false);
+    const [severity, setSeverity] = React.useState("success");
+    const [snackMessage, setSnackMessage] = React.useState("");
+
+    const onList = async () => {
+        await handleList(setOpenListSnack, setSeverity, setSnackMessage);
+    };
 
     return (
-        <BodyComponent isConnected={account.isConnected} onList={onList} onShowListed={onShowListed}/>
+        <div>
+            <BodyComponent isConnected={account.isConnected} onList={onList} onShowListed={onShowListed}/>
+            <SnackAlert open={openListSnack} message={snackMessage} severity={severity}
+                        onClose={() => setOpenListSnack(false)}/>
+        </div>
     );
-}
+};
 
 async function onShowListed() {
-    console.log(" showListedNFT CLICKED\n");
+    console.log("showListedNFT CLICKED\n");
     const contract = getContract();
-    const result = await contract.getListing(0); // for now tokeId = 0
+    const result = await contract.getListing(0); // per ora tokeId = 0
     console.log("i am here");
     const price = result[0];
     const seller = result[1];
@@ -22,17 +34,33 @@ async function onShowListed() {
     console.log("Seller:", seller);
 }
 
-async function onList() {
-    console.log("CLICKED");
+async function handleList(setOpenListSnack, setSeverity, setSnackMessage) {
     const contract = getContract();
 
-    await contract.mintAndList("https://gateway.pinata.cloud/ipfs/QmZQ5", 10);
-    console.log("BEFORE CONTRACT ON\n");
-    contract.on("Listed", () => {
-        console.log("INSIDE CONTRACT ON\n");
-        console.log("DONE");
-    })
-    console.log("AFTER CONTRACT ON\n");
+    try {
+        await contract.mintAndList("https://gateway.pinata.cloud/ipfs/QmZQ5", 10);
+
+        contract.on("Listed", () => {
+            setSnackMessage("NFT Minted and Listed");
+            setSeverity("success");
+            setOpenListSnack(true);
+        });
+    } catch (error) {
+
+
+        if (error.reason) {
+            const regex = /reverted with reason string '(.+?)'/;
+            const match = error.reason.match(regex);
+            console.log(match)
+            if (match && match[1]) {
+                setSnackMessage(`Error: ${match[1]}`);
+            }
+        } else {
+            setSnackMessage("Transaction failed");
+        }
+        setSeverity("error");
+        setOpenListSnack(true);
+    }
 }
 
 function getContract() {
@@ -48,5 +76,5 @@ function getContract() {
         signer
     );
 
-    return contract
+    return contract;
 }
