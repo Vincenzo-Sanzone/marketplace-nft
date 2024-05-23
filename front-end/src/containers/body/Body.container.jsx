@@ -3,12 +3,14 @@ import {ethers} from "ethers";
 import React from "react";
 import {BodyComponent} from "../../component/body/Body.component";
 import {SnackAlert} from "../../component/utils/SnackAlert";
+import {useTabContext} from "../../context/TabProvider";
 
 export const BodyContainer = () => {
     const account = useAccount();
     const [openListSnack, setOpenListSnack] = React.useState(false);
     const [severity, setSeverity] = React.useState("success");
     const [snackMessage, setSnackMessage] = React.useState("");
+    const {tabChosen} = useTabContext();
 
     const onList = async () => {
         await handleList(setOpenListSnack, setSeverity, setSnackMessage);
@@ -16,7 +18,7 @@ export const BodyContainer = () => {
 
     return (
         <div>
-            <BodyComponent isConnected={account.isConnected} onList={onList} onShowListed={onShowListed}/>
+            <BodyComponent value = {tabChosen} isConnected={account.isConnected} onList={onList} onShowListed={onShowListed}/>
             <SnackAlert open={openListSnack} message={snackMessage} severity={severity}
                         onClose={() => setOpenListSnack(false)}/>
         </div>

@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { MetaMaskUIProvider } from "@metamask/sdk-react-ui";
-import {HeaderComponent} from "./component/header/Header.component";
 import {BodyContainer} from "./containers/body/Body.container";
+import {TabProvider} from "./context/TabProvider";
+import {HeaderContainer} from "./containers/header/Header.container";
 
 const root = ReactDOM.createRoot(
     document.getElementById("root")
@@ -18,10 +19,10 @@ root.render(
                 },
             }}
         >
-            <div>
-                <HeaderComponent/>
+            <TabProvider>
+                <HeaderContainer/>
                 <BodyContainer/>
-            </div>
+            </TabProvider>
         </MetaMaskUIProvider>
     </React.StrictMode>
 );
