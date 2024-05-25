@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import {NFT} from "./NFT.sol";
 import "./Constants.sol";
 import "./Errors.sol";
+import "./Event.sol";
+import "./Event.sol";
 
     struct NFTListing {
         uint256 price;
@@ -14,7 +16,6 @@ import "./Errors.sol";
 
 contract MarketNFT is Ownable {
 
-    event Listed(string message);
     mapping(uint256 => NFTListing) private _listings;
     uint8 private _feePercentage = 5;
     NFT private immutable _nft;
@@ -30,6 +31,7 @@ contract MarketNFT is Ownable {
 
     function mint(address to, string memory tokenURI) public returns (uint256){
         uint256 tokenId = _nft.mint(to, tokenURI);
+        emit Event.Minted(tokenId, to);
         return tokenId;
     }
 
@@ -48,7 +50,7 @@ contract MarketNFT is Ownable {
         _nft.getApproval(tokenId);
         _nft.transferFrom(msg.sender, address(this), tokenId);
         _listings[tokenId] = NFTListing(price, msg.sender);
-        emit Listed("DONE");
+        emit Event.Listed(tokenId, price, msg.sender);
     }
 
     function buyNFT(uint256 tokenId) public payable {
@@ -70,6 +72,7 @@ contract MarketNFT is Ownable {
 
         _nft.transferFrom(address(this), msg.sender, tokenId);
         clearListing(tokenId);
+        emit Event.Bought(tokenId, listing.price, msg.sender);
     }
 
     function cancelListing(uint256 tokenId) public {
@@ -79,6 +82,7 @@ contract MarketNFT is Ownable {
 
         _nft.transferFrom(address(this), msg.sender, tokenId);
         clearListing(tokenId);
+        emit Event.Cancelled(tokenId, msg.sender);
     }
 
     function withdrawFunds() public onlyOwner {
