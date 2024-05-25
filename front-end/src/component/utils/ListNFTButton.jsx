@@ -8,7 +8,7 @@ export const ListNFTButton = ({hasOtherError, onList, setPrice, textCss, buttonC
 
     const updatePrice = (event) => {
         const inputValue = event.target.value;
-        const validNumberRegex = /^[+-]?\d+(\.\d+)?$/;
+        const validNumberRegex = /^[+]?\d+(\.\d+)?$/;
         if (validNumberRegex.test(inputValue) && parseFloat(inputValue) > 0) {
             setPrice(inputValue);
             setPriceIsNumber(true);
@@ -31,6 +31,7 @@ export const ListNFTButton = ({hasOtherError, onList, setPrice, textCss, buttonC
             <Button
                 disabled={hasOtherError || !priceIsNumber}
                 onClick={onList}
+                variant="contained"
                 className={buttonCss}
                 startIcon={<SellIcon/>}
             >

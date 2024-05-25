@@ -15,7 +15,7 @@ export const MintNFTComponent = ({url, isImage, onNewInput, onMintNFT, onList, s
         <Box className={"container"}>
             {isImage ? (<img src={url} alt={""} className={"image"}/>) : (
                 <Typography className={"typography"}>
-                    When you insert a validate url, your image will be display here.
+                    When you enter a valid url, your image will be shown here.
                 </Typography>
             )}
             <TextField label="Insert the URL of the image" onInput={onNewInput} className={"text-url"}/>
