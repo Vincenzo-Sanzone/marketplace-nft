@@ -2,8 +2,9 @@ import React from "react";
 import {SnackAlert} from "../../component/utils/SnackAlert";
 import {useTabContext} from "../../context/TabProvider";
 import {TabPanel} from "../../component/utils/TabPanel";
-import {Typography} from "@mui/material";
 import {MintNFTContainer} from "./MintNFT.container";
+import {ListNFTContainer} from "./ListNFT.container";
+import {NFTProvider} from "../../context/NFTProvider";
 
 export const BodyContainer = () => {
     const [openSnack, setOpenSnack] = React.useState(false);
@@ -14,19 +15,23 @@ export const BodyContainer = () => {
 
     return (
         <div>
-            <TabPanel value={tabChosen} index={0}>
-                INSERT BUY NFT LOGIC HERE
-                {/*<Button disabled={!isConnected} onClick={onList}>MINT AND LIST</Button>*/}
-                {/*<Button disabled={!isConnected} onClick={onShowListed}>show Listed NFT</Button>*/}
-            </TabPanel>
-            <TabPanel value={tabChosen} index={1}>
-                <Typography>INSERT SHOW LIST LOGIC HERE</Typography>
-            </TabPanel>
-            <TabPanel value={tabChosen} index={2}>
-                <MintNFTContainer setOpenSnack={setOpenSnack} setSeverity={setSeverity} setSnackMessage={setSnackMessage}/>
-            </TabPanel>
-            <SnackAlert open={openSnack} message={snackMessage} severity={severity}
-                        onClose={() => setOpenSnack(false)}/>
+            <NFTProvider>
+                <TabPanel value={tabChosen} index={0}>
+                    INSERT BUY NFT LOGIC HERE
+                    {/*<Button disabled={!isConnected} onClick={onList}>MINT AND LIST</Button>*/}
+                    {/*<Button disabled={!isConnected} onClick={onShowListed}>show Listed NFT</Button>*/}
+                </TabPanel>
+                <TabPanel value={tabChosen} index={1}>
+                    <ListNFTContainer setOpenSnack={setOpenSnack} setSeverity={setSeverity}
+                                      setSnackMessage={setSnackMessage}/>
+                </TabPanel>
+                <TabPanel value={tabChosen} index={2}>
+                    <MintNFTContainer setOpenSnack={setOpenSnack} setSeverity={setSeverity}
+                                      setSnackMessage={setSnackMessage}/>
+                </TabPanel>
+                <SnackAlert open={openSnack} message={snackMessage} severity={severity}
+                            onClose={() => setOpenSnack(false)}/>
+            </NFTProvider>
         </div>
     );
 };

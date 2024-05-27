@@ -11,12 +11,14 @@ import "./Event.sol";
 
     struct NFTListing {
         uint256 price;
-        address seller;
+        address owner;
+        string url;
     }
 
 contract MarketNFT is Ownable {
 
-    mapping(uint256 => NFTListing) private _listings;
+    mapping(uint256 => NFTListing) private _NFTInMarket;
+    uint256 private _tokenIdCounter;
     uint8 private _feePercentage = 5;
     NFT private immutable _nft;
 
@@ -31,7 +33,9 @@ contract MarketNFT is Ownable {
 
     function mint(address to, string memory tokenURI) public returns (uint256){
         uint256 tokenId = _nft.mint(to, tokenURI);
-        emit Event.Minted(tokenId, to);
+        _NFTInMarket[tokenId] = NFTListing(0, to, tokenURI);
+        _tokenIdCounter++;
+        emit Event.Minted(tokenId, to, tokenURI);
         return tokenId;
     }
 
@@ -49,40 +53,41 @@ contract MarketNFT is Ownable {
 
         _nft.getApproval(tokenId);
         _nft.transferFrom(msg.sender, address(this), tokenId);
-        _listings[tokenId] = NFTListing(price, msg.sender);
-        emit Event.Listed(tokenId, price, msg.sender);
+        _NFTInMarket[tokenId].price = price;
+        emit Event.Listed(tokenId, price);
     }
 
     function buyNFT(uint256 tokenId) public payable {
-        NFTListing memory listing = _listings[tokenId];
+        NFTListing memory listing = _NFTInMarket[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
         require(msg.value == listing.price, Errors.ERROR_PRICE_PAID);
-        require(msg.sender != listing.seller, Errors.ERROR_YOU_ARE_OWNER);
+        require(msg.sender != listing.owner, Errors.ERROR_YOU_ARE_OWNER);
 
         (bool success, uint256 ethToSeller) = Math.tryMul(listing.price, Constants.PERCENTAGE_BASE - _feePercentage);
         assert(success);
         (success, ethToSeller) = Math.tryDiv(ethToSeller, Constants.PERCENTAGE_BASE);
         assert(success);
 
-        (bool successSeller,) = payable(listing.seller).call{value: ethToSeller}("");
+        (bool successSeller,) = payable(listing.owner).call{value: ethToSeller}("");
 
         if (!successSeller) {
             revert(Errors.ERROR_TRANSFER_FAILED);
         }
 
         _nft.transferFrom(address(this), msg.sender, tokenId);
-        clearListing(tokenId);
-        emit Event.Bought(tokenId, listing.price, msg.sender);
+        _NFTInMarket[tokenId].price = 0;
+        _NFTInMarket[tokenId].owner = msg.sender;
+        emit Event.Bought(tokenId, msg.sender);
     }
 
     function cancelListing(uint256 tokenId) public {
-        NFTListing memory listing = _listings[tokenId];
+        NFTListing memory listing = _NFTInMarket[tokenId];
         require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
-        require(listing.seller == msg.sender, Errors.ERROR_NOT_SELLER);
+        require(listing.owner == msg.sender, Errors.ERROR_NOT_SELLER);
 
         _nft.transferFrom(address(this), msg.sender, tokenId);
-        clearListing(tokenId);
-        emit Event.Cancelled(tokenId, msg.sender);
+        _NFTInMarket[tokenId].price = 0;
+        emit Event.Cancelled(tokenId);
     }
 
     function withdrawFunds() public onlyOwner {
@@ -96,18 +101,17 @@ contract MarketNFT is Ownable {
         }
     }
 
-    function clearListing(uint256 tokenId) private {
-        _listings[tokenId].price = 0;
-        _listings[tokenId].seller = address(0);
-    }
-
     function updateFeePercentage(uint8 feePercentage) public onlyOwner {
         require(feePercentage <= 100, Errors.ERROR_FEE_PERCENTAGE);
         _feePercentage = feePercentage;
     }
 
-    function getListing(uint256 tokenId) public view returns (uint256, address) {
-        NFTListing memory listing = _listings[tokenId];
-        return (listing.price, listing.seller);
+    function getLastTokenId() external view returns (uint256) {
+        return _tokenIdCounter;
+    }
+
+    function getNFT(uint256 tokenId) external view returns (uint256, address, string memory) {
+        NFTListing memory nft = _NFTInMarket[tokenId];
+        return (nft.price, nft.owner, nft.url);
     }
 }

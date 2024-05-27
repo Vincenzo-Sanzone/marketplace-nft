@@ -19,8 +19,7 @@ export const handleErrorDuringContractCall = (error, setSnackMessage, setSeverit
         const match = error.reason.match(regex);
         if (match && match[1]) {
             setSnackMessage(`Error: ${match[1]}`);
-        }
-        else {
+        } else {
             setSnackMessage("Transaction failed");
         }
     } else {
