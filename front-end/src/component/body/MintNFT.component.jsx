@@ -1,27 +1,28 @@
-import { TextField, Typography} from "@mui/material";
+import { TextField, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import ConstructionIcon from '@mui/icons-material/Construction';
 import Button from "@mui/material/Button";
 import React from "react";
-import {useAccount} from "@metamask/sdk-react-ui";
-import {ListNFTButton} from "../utils/ListNFTButton";
+import { useAccount } from "@metamask/sdk-react-ui";
+import { ListNFTButton } from "../utils/ListNFTButton";
 import "../../styles/css/MintNFT.css";
 
-export const MintNFTComponent = ({url, isImage, onNewInput, onMintNFT, onList, setPrice}) => {
+export const MintNFTComponent = ({ url, isImage, onNewInput, onNewFile, onMintNFT, onList, setPrice }) => {
     const account = useAccount();
     const errorPresent = !(account.isConnected && isImage);
 
     return (
         <Box className={"container"}>
-            {isImage ? (<img src={url} alt={""} className={"image"}/>) : (
+            {isImage ? (<img src={url} alt={""} className={"image"} />) : (
                 <Typography className={"typography"}>
-                    When you enter a valid url, your image will be shown here.
+                    When you enter a valid URL or upload a valid image, your image will be shown here.
                 </Typography>
             )}
-            <TextField label="Insert the URL of the image" onInput={onNewInput} className={"text-url"}/>
+            <TextField label="Insert the URL of the image" onInput={onNewInput} className={"text-url"} />
+            <input type="file" accept="image/*" onChange={onNewFile} className={"file-input"} />
             <Button
                 variant="contained"
-                startIcon={<ConstructionIcon/>}
+                startIcon={<ConstructionIcon />}
                 onClick={onMintNFT}
                 disabled={errorPresent}
                 className={"button-mint"}
@@ -36,5 +37,5 @@ export const MintNFTComponent = ({url, isImage, onNewInput, onMintNFT, onList, s
                 buttonCss={""}
             />
         </Box>
-    )
+    );
 }

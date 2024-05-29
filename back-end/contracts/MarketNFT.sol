@@ -114,4 +114,23 @@ contract MarketNFT is Ownable {
         NFTListing memory nft = _NFTInMarket[tokenId];
         return (nft.price, nft.owner, nft.url);
     }
+
+    //getNFTsByOwner, i think no need detail, the name is explicit
+//    function getNFTsByOwner(address owner) external view returns (uint256[] memory) {
+//        uint256[] memory result = new uint256[](_tokenIdCounter);
+//        uint256 counter = 0;
+//        for (uint256 i = 0; i < _tokenIdCounter; i++) {
+//            if (_NFTInMarket[i].owner == owner) {
+//                result[counter] = i;
+//                counter++;
+//            }
+//        }
+//        uint256[] memory finalResult = new uint256[](counter);
+//        for (uint256 j = 0; j < counter; j++) {
+//            finalResult[j] = result[j];
+//        }
+//        return finalResult;
+//    }
+
+
 }
