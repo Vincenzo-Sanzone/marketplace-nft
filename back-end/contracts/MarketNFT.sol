@@ -7,7 +7,6 @@ import {NFT} from "./NFT.sol";
 import "./Constants.sol";
 import "./Errors.sol";
 import "./Event.sol";
-import "./Event.sol";
 
     struct NFTListing {
         uint256 price;
@@ -106,31 +105,18 @@ contract MarketNFT is Ownable {
         _feePercentage = feePercentage;
     }
 
-    function getLastTokenId() external view returns (uint256) {
-        return _tokenIdCounter;
+    function getAllNft() external view returns (uint256[] memory, address[] memory, string[] memory) {
+        require(tx.origin == msg.sender, Errors.ERROR_CONTRACT_CALL);
+        uint256[] memory prices = new uint256[](_tokenIdCounter);
+        address[] memory owners = new address[](_tokenIdCounter);
+        string[] memory urls = new string[](_tokenIdCounter);
+        for (uint256 i = 0; i < _tokenIdCounter; i++) {
+            prices[i] = _NFTInMarket[i].price;
+            owners[i] = _NFTInMarket[i].owner;
+            urls[i] = _NFTInMarket[i].url;
+        }
+        return (prices, owners, urls);
     }
-
-    function getNFT(uint256 tokenId) external view returns (uint256, address, string memory) {
-        NFTListing memory nft = _NFTInMarket[tokenId];
-        return (nft.price, nft.owner, nft.url);
-    }
-
-    //getNFTsByOwner, i think no need detail, the name is explicit
-//    function getNFTsByOwner(address owner) external view returns (uint256[] memory) {
-//        uint256[] memory result = new uint256[](_tokenIdCounter);
-//        uint256 counter = 0;
-//        for (uint256 i = 0; i < _tokenIdCounter; i++) {
-//            if (_NFTInMarket[i].owner == owner) {
-//                result[counter] = i;
-//                counter++;
-//            }
-//        }
-//        uint256[] memory finalResult = new uint256[](counter);
-//        for (uint256 j = 0; j < counter; j++) {
-//            finalResult[j] = result[j];
-//        }
-//        return finalResult;
-//    }
 
 
 }
