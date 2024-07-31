@@ -3,21 +3,14 @@ import {getAllNFTs} from "../../component/utils/helper";
 import {useAccount} from "@metamask/sdk-react-ui";
 import {Typography} from "@mui/material";
 import {useNFTContext} from "../../context/NFTProvider";
+import YourNFTs from "./YourNFTs";
 
-export const ListNFTContainer = ({setOpenSnack, setSeverity, setSnackMessage}) => {
+export const ListNFTContainer = ({ setOpenSnack, setSeverity, setSnackMessage }) => {
     const account = useAccount();
-    const {allNFT} = useNFTContext();
-    const nftOwned = allNFT.filter(nft => nft.owner === account);
 
     return (
         <div>
-            <Typography>{allNFT}</Typography>
-            <Typography>{nftOwned}</Typography>
+            {account.isConnected ? <YourNFTs /> : <p>Please connect your wallet.</p>}
         </div>
-        // <ListNFTComponent
-        //     onClickedButton={() => console.log("ListNFT CLICKED")}
-        //     isListing={true}
-        //     nftToShow={nftOwned}
-        // />
     );
-}
+};

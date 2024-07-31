@@ -5,6 +5,8 @@ import {TabPanel} from "../../component/utils/TabPanel";
 import {MintNFTContainer} from "./MintNFT.container";
 import {ListNFTContainer} from "./ListNFT.container";
 import {NFTProvider} from "../../context/NFTProvider";
+import YourNFTs from "./YourNFTs";
+import BuyNFTs from "./BuyNFTs";
 
 export const BodyContainer = () => {
     const [openSnack, setOpenSnack] = React.useState(false);
@@ -18,10 +20,12 @@ export const BodyContainer = () => {
             <NFTProvider>
                 <TabPanel value={tabChosen} index={0}>
                     INSERT BUY NFT LOGIC HERE
+                    <BuyNFTs setOpenSnack={setOpenSnack} setSeverity={setSeverity} setSnackMessage={setSnackMessage} />
                     {/*<Button disabled={!isConnected} onClick={onList}>MINT AND LIST</Button>*/}
                     {/*<Button disabled={!isConnected} onClick={onShowListed}>show Listed NFT</Button>*/}
                 </TabPanel>
                 <TabPanel value={tabChosen} index={1}>
+                    show NFT LOGIC HERE
                     <ListNFTContainer setOpenSnack={setOpenSnack} setSeverity={setSeverity}
                                       setSnackMessage={setSnackMessage}/>
                 </TabPanel>

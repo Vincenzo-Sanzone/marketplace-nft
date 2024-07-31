@@ -105,18 +105,72 @@ contract MarketNFT is Ownable {
         _feePercentage = feePercentage;
     }
 
-    function getAllNft() external view returns (uint256[] memory, address[] memory, string[] memory) {
-        require(tx.origin == msg.sender, Errors.ERROR_CONTRACT_CALL);
-        uint256[] memory prices = new uint256[](_tokenIdCounter);
-        address[] memory owners = new address[](_tokenIdCounter);
-        string[] memory urls = new string[](_tokenIdCounter);
-        for (uint256 i = 0; i < _tokenIdCounter; i++) {
-            prices[i] = _NFTInMarket[i].price;
-            owners[i] = _NFTInMarket[i].owner;
-            urls[i] = _NFTInMarket[i].url;
-        }
-        return (prices, owners, urls);
+    function getLastTokenId() external view returns (uint256) {
+        return _tokenIdCounter;
     }
 
+    function getNFT(uint256 tokenId) external view returns (uint256, address, string memory) {
+        NFTListing memory nft = _NFTInMarket[tokenId];
+        return (nft.price, nft.owner, nft.url);
+    }
+
+    function getNFTsByOwner(address owner) external view returns (uint256[] memory, string[] memory) {
+        uint256 counter = 0;
+        //conta quanti NFT sono posseduti dal owner
+        for (uint256 i = 0; i < _tokenIdCounter; i++) {
+            if (_NFTInMarket[i].owner == owner) {
+                counter++;
+            }
+        }
+
+        uint256[] memory tokenIds = new uint256[](counter);
+        string[] memory urls = new string[](counter);
+        counter = 0;
+        for (uint256 i = 0; i < _tokenIdCounter; i++) {
+            if (_NFTInMarket[i].owner == owner) {
+                tokenIds[counter] = i;
+                urls[counter] = _NFTInMarket[i].url;
+                counter++;
+            }
+        }
+
+        return (tokenIds, urls);
+    }
+
+    function removeNFT(uint256 tokenId) external {
+        NFTListing memory listing = _NFTInMarket[tokenId];
+        require(listing.owner == msg.sender, Errors.ERROR_NOT_SELLER);
+
+       // _burn(tokenId);
+        delete _NFTInMarket[tokenId];
+    }
+
+
+
+    function getAllNFTsForSale() external view returns (uint256[] memory, address[] memory, string[] memory, uint256[] memory) {
+        uint256 counter = 0;
+        for (uint256 i = 0; i <= _tokenIdCounter; i++) {
+            if (_NFTInMarket[i].price > 0) {
+                counter++;
+            }
+        }
+
+        uint256[] memory tokenIds = new uint256[](counter);
+        address[] memory owners = new address[](counter);
+        string[] memory urls = new string[](counter);
+        uint256[] memory prices = new uint256[](counter);
+        counter = 0;
+        for (uint256 i = 0; i <= _tokenIdCounter; i++) {
+            if (_NFTInMarket[i].price > 0) {
+                tokenIds[counter] = i;
+                owners[counter] = _NFTInMarket[i].owner;
+                urls[counter] = _NFTInMarket[i].url;
+                prices[counter] = _NFTInMarket[i].price;
+                counter++;
+            }
+        }
+
+        return (tokenIds, owners, urls, prices);
+    }
 
 }

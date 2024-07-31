@@ -128,7 +128,7 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
                 onList={onList}
                 setPrice={setPrice}
             />
-            <YourNFTs />
+            {/*<YourNFTs />*/}
         </div>
     );
 }
@@ -159,6 +159,12 @@ async function handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, url, ac
             setSeverity("success");
             setOpenSnack(true);
         });
+
+        console.log("ho fatto il mint, posso ora cercare il contratto al interno!?\n");
+        //const [tokenIds, urls] = await contract.getNFTsByOwner(account.address);
+
+        //console.log("tokenIds = " + tokenIds[0] + "\n urls = " + urls[0]);
+
     } catch (error) {
         handleErrorDuringContractCall(error, setSnackMessage, setSeverity, setOpenSnack);
     }
