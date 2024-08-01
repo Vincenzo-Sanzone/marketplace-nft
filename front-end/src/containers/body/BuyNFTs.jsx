@@ -25,14 +25,15 @@ const BuyNFTs = () => {
 
             const nftDetails = [];
             for (let i = 0; i < tokenIds.length; i++) {
-               if (owners[i].toLowerCase() !== account.address.toLowerCase()) {  // Don't show your own NFTs
-                    nftDetails.push({
+              // if (owners[i].toLowerCase() !== account.address.toLowerCase()) {  // Don't show your own NFTs
+                const owner = owners[i] || "";
+                nftDetails.push({
                         id: tokenIds[i].toString(),  // Convert BigNumber to string
-                        owner: owners[i],
+                        owner: owner,   // Ensure owner is a string
                         url: urls[i],
                         price: ethers.utils.formatEther(prices[i])
                     });
-               }
+              // }
             }
 
             setNftsForSale(nftDetails);
@@ -57,6 +58,19 @@ const BuyNFTs = () => {
         }
     };
 
+    const cancelSale = async (tokenId) => {
+        const contract = getContract();
+        try {
+            const tx = await contract.cancelListing(tokenId);
+            await tx.wait();
+            alert(`Sale for NFT ${tokenId} cancelled`);
+            fetchNFTsForSale();  // Refresh the NFT list
+        } catch (error) {
+            console.error("Error cancelling sale:", error);
+            alert("Failed to cancel sale.");
+        }
+    };
+
     return (
         <div>
             <h2>NFTs for Sale</h2>
@@ -69,7 +83,13 @@ const BuyNFTs = () => {
                         <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px' }} />
                         <p>ID: {nft.id}</p>
                         <p>Price: {nft.price} ETH</p>
-                        <button onClick={() => buyNFT(nft.id, nft.price)}>Buy</button>
+                        {nft.owner.toLowerCase() === account.address?.toLowerCase()  ? (
+                            <button onClick={() => cancelSale(nft.id)}>Cancel Sale</button>
+                        ) : (
+                            <button onClick={() => buyNFT(nft.id, nft.price)}>Buy</button>
+                        )
+
+                        }
                     </div>
                 ))}
             </div>
