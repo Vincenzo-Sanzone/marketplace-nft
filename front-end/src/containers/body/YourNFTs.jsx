@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { getContract } from "../../component/utils/helper";
 import { useAccount } from "@metamask/sdk-react-ui";
 import { ethers } from "ethers";
+import { Snackbar, Alert, TextField, Button, Grid } from '@mui/material';
 
 const YourNFTs = () => {
     const [nfts, setNfts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+    const [priceInputs, setPriceInputs] = useState({});
     const account = useAccount();
 
     useEffect(() => {
@@ -21,19 +24,23 @@ const YourNFTs = () => {
         const contract = getContract();
 
         try {
-            const [tokenIds, urls] = await contract.getNFTsByOwner(account.address);
+            const [userTokenIds, urls] = await contract.getNFTsByOwner(account.address);
+            const [saleTokenIds, saleOwners, saleUrls, salePrices] = await contract.getAllNFTsForSale();
 
-           // console.log("tokenIds:", tokenIds);
-            //console.log("urls:", urls);
-
-            // Utilizza un array per salvare i dettagli degli NFT
             const nftDetails = [];
-            for (let i = 0; i < tokenIds.length; i++) {
+            for (let i = 0; i < userTokenIds.length; i++) {
+                const tokenId = userTokenIds[i].toString();
+                const url = urls[i];
+
+                const isForSale = saleTokenIds.map(id => id.toString()).includes(tokenId);
+
                 nftDetails.push({
-                    id: tokenIds[i].toString(),
-                    url: urls[i]
+                    id: tokenId,
+                    url: url,
+                    isForSale: isForSale
                 });
-                console.log(`tokenId = ${tokenIds[i]}, url = ${urls[i]}`);
+
+                console.log(`tokenId = ${tokenId}, url = ${url}, isForSale = ${isForSale}`);
             }
 
             setNfts(nftDetails);
@@ -50,10 +57,32 @@ const YourNFTs = () => {
         try {
             const tx = await contract.listNFT(tokenId, ethers.utils.parseEther(price));
             await tx.wait();
-            alert(`NFT ${tokenId} listed for sale at ${price} ETH`);
+            setNotification({ open: true, message: `NFT ${tokenId} listed for sale at ${price} ETH`, severity: 'success' });
+            setNfts(prevNfts =>
+                prevNfts.map(nft =>
+                    nft.id === tokenId ? { ...nft, isForSale: true } : nft
+                )
+            );
         } catch (error) {
             console.error("Error listing NFT:", error);
-            alert("Failed to list NFT.");
+            setNotification({ open: true, message: 'Failed to list NFT.', severity: 'error' });
+        }
+    };
+
+    const cancelSale = async (tokenId) => {
+        const contract = getContract();
+        try {
+            const tx = await contract.cancelListing(tokenId);
+            await tx.wait();
+            setNotification({ open: true, message: `Sale for NFT ${tokenId} cancelled`, severity: 'success' });
+            setNfts(prevNfts =>
+                prevNfts.map(nft =>
+                    nft.id === tokenId ? { ...nft, isForSale: false } : nft
+                )
+            );
+        } catch (error) {
+            console.error("Error cancelling sale:", error);
+            setNotification({ open: true, message: 'Failed to cancel sale.', severity: 'error' });
         }
     };
 
@@ -62,14 +91,20 @@ const YourNFTs = () => {
         try {
             const tx = await contract.removeNFT(tokenId);
             await tx.wait();
-            alert(`NFT ${tokenId} removed`);
-            fetchNFTs();  // Refresh the NFT list
+            setNotification({ open: true, message: `NFT ${tokenId} removed`, severity: 'success' });
+            setNfts(prevNfts => prevNfts.filter(nft => nft.id !== tokenId));
         } catch (error) {
             console.error("Error removing NFT:", error);
-            alert("Failed to remove NFT.");
+            setNotification({ open: true, message: 'Failed to remove NFT.', severity: 'error' });
         }
     };
 
+    const handlePriceChange = (e, tokenId) => {
+        setPriceInputs({
+            ...priceInputs,
+            [tokenId]: e.target.value
+        });
+    };
 
     return (
         <div>
@@ -82,14 +117,39 @@ const YourNFTs = () => {
                     <div key={nft.id} className="nft-card" style={{ margin: '10px', border: '1px solid black', padding: '10px' }}>
                         <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px' }} />
                         <p>ID: {nft.id}</p>
-                        <button onClick={() => {
-                            const price = prompt("Enter sale price in ETH:");
-                            if (price) listNFT(nft.id, price);
-                        }}>Metti in vendita</button>
+                        {nft.isForSale ? (
+                            <button onClick={() => cancelSale(nft.id)}>Annulla vendita</button>
+                        ) : (
+                            <div>
+                                <TextField
+                                    label="Price in ETH"
+                                    type="number"
+                                    value={priceInputs[nft.id] || ''}
+                                    onChange={(e) => handlePriceChange(e, nft.id)}
+                                />
+                                <Button
+                                    onClick={() => {
+                                        const price = priceInputs[nft.id];
+                                        if (price) listNFT(nft.id, price);
+                                    }}
+                                >
+                                    Metti in vendita
+                                </Button>
+                            </div>
+                        )}
                         <button onClick={() => removeNFT(nft.id)}>Elimina NFT</button>
                     </div>
                 ))}
             </div>
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={6000}
+                onClose={() => setNotification({ ...notification, open: false })}
+            >
+                <Alert onClose={() => setNotification({ ...notification, open: false })} severity={notification.severity}>
+                    {notification.message}
+                </Alert>
+            </Snackbar>
         </div>
     );
 };
