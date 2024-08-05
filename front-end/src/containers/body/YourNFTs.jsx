@@ -3,6 +3,7 @@ import { getContract } from "../../component/utils/helper";
 import { useAccount } from "@metamask/sdk-react-ui";
 import { ethers } from "ethers";
 import { Snackbar, Alert, TextField, Button, Grid } from '@mui/material';
+import Box from "@mui/material/Box";
 
 const YourNFTs = () => {
     const [nfts, setNfts] = useState([]);
@@ -114,30 +115,37 @@ const YourNFTs = () => {
             {nfts.length === 0 && !loading && <p>No NFTs found.</p>}
             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                 {nfts.map(nft => (
-                    <div key={nft.id} className="nft-card" style={{ margin: '10px', border: '1px solid black', padding: '10px' }}>
-                        <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px' }} />
+                    <div key={nft.id} className="nft-card" style={{ margin: '10px', border: '1px solid black', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px', objectFit: 'cover' }} />
                         <p>ID: {nft.id}</p>
                         {nft.isForSale ? (
-                            <button onClick={() => cancelSale(nft.id)}>Annulla vendita</button>
+                            <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)} style={{ margin: '5px' }}>Annulla vendita</Button>
                         ) : (
-                            <div>
+                            <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
                                 <TextField
                                     label="Price in ETH"
                                     type="number"
                                     value={priceInputs[nft.id] || ''}
                                     onChange={(e) => handlePriceChange(e, nft.id)}
+                                    style={{ marginBottom: '10px' }}
                                 />
                                 <Button
+                                    variant="contained" color="primary"
                                     onClick={() => {
                                         const price = priceInputs[nft.id];
-                                        if (price) listNFT(nft.id, price);
+                                        if (price) {
+                                            listNFT(nft.id, price);
+                                        } else {
+                                            setNotification({ open: true, message: "Please enter a price.", severity: 'warning' });
+                                        }
                                     }}
+                                    style={{ margin: '5px' }}
                                 >
                                     Metti in vendita
                                 </Button>
-                            </div>
+                            </Box>
                         )}
-                        <button onClick={() => removeNFT(nft.id)}>Elimina NFT</button>
+                        <Button variant="contained" color="error" onClick={() => removeNFT(nft.id)} style={{ margin: '5px' }}>Elimina NFT</Button>
                     </div>
                 ))}
             </div>

@@ -4,6 +4,7 @@ import { getContract, handleErrorDuringContractCall } from "../../component/util
 import { ethers } from "ethers";
 import { useAccount } from "@metamask/sdk-react-ui";
 import axios from 'axios';
+import { Box, Snackbar, Alert, TextField, Button, Typography } from '@mui/material';
 import YourNFTs from './YourNFTs';
 
 const PINATA_API_KEY = 'a327535ffddc60a0b798';
@@ -14,6 +15,7 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
     const [file, setFile] = React.useState(null);
     const [isImage, setIsImage] = React.useState(false);
     const [price, setPrice] = React.useState(0);
+    const [notification, setNotification] = React.useState({ open: false, message: '', severity: '' });
     const account = useAccount();
 
     const onNewInput = async (e) => {
@@ -118,7 +120,7 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
     }
 
     return (
-        <div>
+        <Box>
             <MintNFTComponent
                 isImage={isImage}
                 url={url}
@@ -128,8 +130,16 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
                 onList={onList}
                 setPrice={setPrice}
             />
-            {/*<YourNFTs />*/}
-        </div>
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={6000}
+                onClose={() => setNotification({ ...notification, open: false })}
+            >
+                <Alert onClose={() => setNotification({ ...notification, open: false })} severity={notification.severity}>
+                    {notification.message}
+                </Alert>
+            </Snackbar>
+        </Box>
     );
 }
 
@@ -154,11 +164,11 @@ async function handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, url, ac
     try {
         await contract.mint(account.address, url);
 
-        contract.on("Minted", () => {
-            setSnackMessage("NFT Minted.");
-            setSeverity("success");
-            setOpenSnack(true);
-        });
+        // contract.on("Minted", () => {
+        //     setSnackMessage("NFT Minted.");
+        //     setSeverity("success");
+        //     setOpenSnack(true);
+        // });
 
         console.log("ho fatto il mint, posso ora cercare il contratto al interno!?\n");
         //const [tokenIds, urls] = await contract.getNFTsByOwner(account.address);
