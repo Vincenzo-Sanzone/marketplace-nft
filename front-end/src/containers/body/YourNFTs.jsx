@@ -11,6 +11,7 @@ const YourNFTs = () => {
     const [error, setError] = useState(null);
     const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
     const [priceInputs, setPriceInputs] = useState({});
+
     const account = useAccount();
 
     useEffect(() => {
@@ -19,29 +20,35 @@ const YourNFTs = () => {
         }
     }, [account.isConnected]);
 
+
+
     const fetchNFTs = async () => {
         setLoading(true);
         setError(null);
         const contract = getContract();
 
         try {
-            const [userTokenIds, urls] = await contract.getNFTsByOwner(account.address);
-            const [saleTokenIds, saleOwners, saleUrls, salePrices] = await contract.getAllNFTsForSale();
+            const [userTokenIds, urls, names, descriptions] = await contract.getNFTsByOwner(account.address);
+            const [saleTokenIds, saleOwners, saleUrls, salePrices, saleNames, saleDescriptions] = await contract.getAllNFTsForSale();
 
             const nftDetails = [];
             for (let i = 0; i < userTokenIds.length; i++) {
                 const tokenId = userTokenIds[i].toString();
                 const url = urls[i];
+                const name = names[i];
+                const description = descriptions[i];
 
                 const isForSale = saleTokenIds.map(id => id.toString()).includes(tokenId);
 
                 nftDetails.push({
                     id: tokenId,
                     url: url,
+                    name: name,
+                    description: description,
                     isForSale: isForSale
                 });
 
-                console.log(`tokenId = ${tokenId}, url = ${url}, isForSale = ${isForSale}`);
+                console.log(`tokenId = ${tokenId}, url = ${url}, name = ${name}, description = ${description}, isForSale = ${isForSale}`);
             }
 
             setNfts(nftDetails);
@@ -117,9 +124,14 @@ const YourNFTs = () => {
                 {nfts.map(nft => (
                     <div key={nft.id} className="nft-card" style={{ margin: '10px', border: '1px solid black', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px', objectFit: 'cover' }} />
-                        <p>ID: {nft.id}</p>
+                        <Box sx={{ textAlign: 'center', marginTop: '10px' }}>
+                            <h3 style={{ margin: '5px 0', fontWeight: 'bold' }}>{nft.name}</h3>
+                            <p style={{ margin: '5px 0', color: 'gray' }}>{nft.description}</p>
+                            <p style={{ margin: '5px 0' }}>ID: {nft.id}</p>
+
+                        </Box>
                         {nft.isForSale ? (
-                            <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)} style={{ margin: '5px' }}>Annulla vendita</Button>
+                            <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)} style={{ margin: '5px' }}>Cancel Sale</Button>
                         ) : (
                             <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
                                 <TextField
@@ -127,7 +139,9 @@ const YourNFTs = () => {
                                     type="number"
                                     value={priceInputs[nft.id] || ''}
                                     onChange={(e) => handlePriceChange(e, nft.id)}
+
                                     style={{ marginBottom: '10px' }}
+
                                 />
                                 <Button
                                     variant="contained" color="primary"
@@ -140,12 +154,14 @@ const YourNFTs = () => {
                                         }
                                     }}
                                     style={{ margin: '5px' }}
+
+
                                 >
-                                    Metti in vendita
+                                    Sale
                                 </Button>
                             </Box>
                         )}
-                        <Button variant="contained" color="error" onClick={() => removeNFT(nft.id)} style={{ margin: '5px' }}>Elimina NFT</Button>
+                        <Button variant="contained" color="error" onClick={() => removeNFT(nft.id)} style={{ margin: '5px' }}>Delete NFT</Button>
                     </div>
                 ))}
             </div>

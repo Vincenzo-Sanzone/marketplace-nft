@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { MintNFTComponent } from "../../component/body/MintNFT.component";
 import { getContract, handleErrorDuringContractCall } from "../../component/utils/helper";
 import { ethers } from "ethers";
@@ -11,11 +11,13 @@ const PINATA_API_KEY = 'a327535ffddc60a0b798';
 const PINATA_SECRET_API_KEY = 'e37ef8cadbae12d2c026d16d1c461d930b7f64672999775e32156213a4ba7ed0';
 
 export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack }) => {
-    const [url, setUrl] = React.useState("");
-    const [file, setFile] = React.useState(null);
-    const [isImage, setIsImage] = React.useState(false);
-    const [price, setPrice] = React.useState(0);
-    const [notification, setNotification] = React.useState({ open: false, message: '', severity: '' });
+    const [url, setUrl] = useState("");
+    const [file, setFile] = useState(null);
+    const [isImage, setIsImage] = useState(false);
+    const [price, setPrice] = useState(0);
+    const [notification, setNotification] = useState({ open: false, message: '', severity: '' });
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
     const account = useAccount();
 
     const onNewInput = async (e) => {
@@ -36,7 +38,7 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
             setIsImage(false);
             setUrl("");
         }
-    }
+    };
 
     const onNewFile = async (e) => {
         const newFile = e.target.files[0];
@@ -56,7 +58,7 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
             setIsImage(false);
             setUrl("");
         }
-    }
+    };
 
     const uploadToPinata = async (file) => {
         const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
@@ -89,7 +91,7 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
             console.error("Error uploading file to Pinata:", error);
             return null;
         }
-    }
+    };
 
     const onMintNFT = async () => {
         let finalUrl = url;
@@ -97,13 +99,13 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
             finalUrl = await uploadToPinata(file);
         }
         if (finalUrl) {
-            await handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, finalUrl, account);
+            await handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, finalUrl, account, name, description);
         } else {
             setSnackMessage("Failed to upload image to IPFS.");
             setSeverity("error");
             setOpenSnack(true);
         }
-    }
+    };
 
     const onList = async () => {
         let finalUrl = url;
@@ -111,13 +113,13 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
             finalUrl = await uploadToPinata(file);
         }
         if (finalUrl) {
-            await handleList(setSnackMessage, setSeverity, setOpenSnack, price, finalUrl);
+            await handleList(setSnackMessage, setSeverity, setOpenSnack, price, finalUrl, name, description);
         } else {
             setSnackMessage("Failed to upload image to IPFS.");
             setSeverity("error");
             setOpenSnack(true);
         }
-    }
+    };
 
     return (
         <Box>
@@ -129,6 +131,10 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
                 onMintNFT={onMintNFT}
                 onList={onList}
                 setPrice={setPrice}
+                setName={setName}
+                setDescription={setDescription}
+                name={name}
+                description={description}
             />
             <Snackbar
                 open={notification.open}
@@ -141,12 +147,12 @@ export const MintNFTContainer = ({ setSnackMessage, setSeverity, setOpenSnack })
             </Snackbar>
         </Box>
     );
-}
+};
 
-async function handleList(setSnackMessage, setSeverity, setOpenSnack, price, url) {
+async function handleList(setSnackMessage, setSeverity, setOpenSnack, price, url, name, description) {
     const contract = getContract();
     try {
-        await contract.mintAndList(url, ethers.utils.parseEther(price));
+        await contract.mintAndList(url, ethers.utils.parseEther(price), name, description);
 
         contract.on("Listed", () => {
             setSnackMessage("NFT Minted and Listed at price: " + parseFloat(price) + " ETH.");
@@ -158,19 +164,20 @@ async function handleList(setSnackMessage, setSeverity, setOpenSnack, price, url
     }
 }
 
-async function handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, url, account) {
+async function handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, url, account, name, description) {
     const contract = getContract();
 
     try {
-        await contract.mint(account.address, url);
+        await contract.mint(account.address, url, name, description);
 
-        // contract.on("Minted", () => {
-        //     setSnackMessage("NFT Minted.");
-        //     setSeverity("success");
-        //     setOpenSnack(true);
-        // });
+        contract.on("Minted", () => {
+            setSnackMessage("NFT Minted. now wait for the transaction confirm...");
+            setSeverity("success");
+            setOpenSnack(true);
+        });
 
-        console.log("ho fatto il mint, posso ora cercare il contratto al interno!?\n");
+       // console.log("ho fatto il mint, posso ora cercare il contratto al interno!?\n");
+
         //const [tokenIds, urls] = await contract.getNFTsByOwner(account.address);
 
         //console.log("tokenIds = " + tokenIds[0] + "\n urls = " + urls[0]);

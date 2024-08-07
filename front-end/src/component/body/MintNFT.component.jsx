@@ -7,7 +7,7 @@ import { useAccount } from "@metamask/sdk-react-ui";
 import { ListNFTButton } from "../utils/ListNFTButton";
 import "../../styles/css/MintNFT.css";
 
-export const MintNFTComponent = ({ url, isImage, onNewInput, onNewFile, onMintNFT, onList, setPrice }) => {
+export const MintNFTComponent = ({ url, isImage, onNewInput, onNewFile, onMintNFT, onList, setPrice, setName, setDescription }) => {
     const account = useAccount();
     const errorPresent = !(account.isConnected && isImage);
     // Riferimento per l'input file nascosto
@@ -20,16 +20,19 @@ export const MintNFTComponent = ({ url, isImage, onNewInput, onNewFile, onMintNF
                     <img src={url} alt="" className={"image"} style={{ maxWidth: '100%', maxHeight: '400px', marginBottom: '20px' }} />
                 ) : (
                     <Typography className={"typography"} style={{ marginBottom: '20px' }}>
-                        When you enter a valid URL or upload a valid image, your image will be shown here.
+                        {/*When you enter a valid URL or upload a valid image, your image will be shown here.*/}
+                        upload a valid image, your image will be shown here.
                     </Typography>
                 )}
-                <TextField
-                    label="Insert the URL of the image"
-                    onInput={onNewInput}
-                    className={"text-url"}
-                    fullWidth
-                    style={{ marginBottom: '20px' }}
-                />
+                {/*<TextField*/}
+                {/*    label="Insert the URL of the image"*/}
+                {/*    onInput={onNewInput}*/}
+                {/*    className={"text-url"}*/}
+                {/*    fullWidth*/}
+                {/*    style={{ marginBottom: '20px' }}*/}
+                {/*/>*/}
+
+
                 {/*<input*/}
                 {/*    type="file"*/}
                 {/*    accept="image/*"*/}
@@ -55,20 +58,23 @@ export const MintNFTComponent = ({ url, isImage, onNewInput, onNewFile, onMintNF
                     Upload Image
                 </Button>
 
-                <Button
-                    variant="contained"
-                    startIcon={<ConstructionIcon />}
-                    onClick={onMintNFT}
-                    disabled={errorPresent}
-                    className={"button-mint"}
-                    style={{ marginBottom: '20px' }}
-                >
-                    Create NFT
-                </Button>
+                {/*<Button*/}
+                {/*    variant="contained"*/}
+                {/*    startIcon={<ConstructionIcon />}*/}
+                {/*    onClick={onMintNFT}*/}
+                {/*    disabled={errorPresent || !name || !description}*/}
+                {/*    className={"button-mint"}*/}
+                {/*    style={{ marginBottom: '20px' }}*/}
+                {/*>*/}
+                {/*    Create NFT*/}
+                {/*</Button>*/}
                 <ListNFTButton
                     hasOtherError={errorPresent}
                     onList={onList}
+                    onMintNFT={onMintNFT}
                     setPrice={setPrice}
+                    setName={setName}
+                    setDescription={setDescription}
                     textCss={"text-price"}
                     buttonCss={""}
                 />

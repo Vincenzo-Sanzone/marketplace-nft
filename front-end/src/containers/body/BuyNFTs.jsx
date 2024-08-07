@@ -3,6 +3,7 @@ import { getContract } from "../../component/utils/helper";
 import { useAccount } from "@metamask/sdk-react-ui";
 import { ethers } from "ethers";
 import { Button, Snackbar, Alert } from '@mui/material';
+import Box from "@mui/material/Box";
 
 const BuyNFTs = () => {
     const [nftsForSale, setNftsForSale] = useState([]);
@@ -23,19 +24,19 @@ const BuyNFTs = () => {
         const contract = getContract();
 
         try {
-            const [tokenIds, owners, urls, prices] = await contract.getAllNFTsForSale();
+            const [tokenIds, owners, urls, prices, names, descriptions] = await contract.getAllNFTsForSale();
 
             const nftDetails = [];
             for (let i = 0; i < tokenIds.length; i++) {
-              // if (owners[i].toLowerCase() !== account.address.toLowerCase()) {  // Don't show your own NFTs
                 const owner = owners[i] || "";
                 nftDetails.push({
-                        id: tokenIds[i].toString(),  // Convert BigNumber to string
-                        owner: owner,   // Ensure owner is a string
-                        url: urls[i],
-                        price: ethers.utils.formatEther(prices[i])
-                    });
-              // }
+                    id: tokenIds[i].toString(),  // Convert BigNumber to string
+                    owner: owner,   // Ensure owner is a string
+                    url: urls[i],
+                    price: ethers.utils.formatEther(prices[i]),
+                    name: names[i],
+                    description: descriptions[i]
+                });
             }
 
             setNftsForSale(nftDetails);
@@ -84,12 +85,16 @@ const BuyNFTs = () => {
                 {nftsForSale.map(nft => (
                     <div key={nft.id} className="nft-card" style={{ margin: '10px', border: '1px solid black', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px', objectFit: 'cover' }} />
-                        <p>ID: {nft.id}</p>
-                        <p>Price: {nft.price} ETH</p>
+                        <Box sx={{ textAlign: 'center', marginTop: '10px' }}>
+                            <h3 style={{ margin: '5px 0', fontWeight: 'bold' }}>{nft.name}</h3>
+                            <p style={{ margin: '5px 0', color: 'gray' }}>{nft.description}</p>
+                            {/*<p style={{ margin: '5px 0' }}>ID: {nft.id}</p>*/}
+                            <p style={{ margin: '5px 0' }}>Price: {nft.price} ETH</p>
+                        </Box>
                         {nft.owner.toLowerCase() === account.address?.toLowerCase() ? (
-                            <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)}>Cancel Sale</Button>
+                            <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)} style={{ margin: '5px' }}>Cancel Sale</Button>
                         ) : (
-                            <Button variant="contained" color="primary" onClick={() => buyNFT(nft.id, nft.price)}>Buy</Button>
+                            <Button variant="contained" color="primary" onClick={() => buyNFT(nft.id, nft.price)} style={{ margin: '5px' }}>Buy</Button>
                         )}
                     </div>
                 ))}

@@ -12,8 +12,9 @@ import "./Event.sol";
         uint256 price;
         address owner;
         string url;
+        string name;
+        string description;
     }
-
 contract MarketNFT is Ownable {
 
     mapping(uint256 => NFTListing) private _NFTInMarket;
@@ -25,14 +26,14 @@ contract MarketNFT is Ownable {
         _nft = new NFT(address(this));
     }
 
-    function mintAndList(string memory tokenURI, uint256 price) public {
-        uint256 tokenId = mint(msg.sender, tokenURI);
+    function mintAndList(string memory tokenURI, uint256 price, string memory name, string memory description) public {
+        uint256 tokenId = mint(msg.sender, tokenURI, name, description);
         listNFT(tokenId, price);
     }
 
-    function mint(address to, string memory tokenURI) public returns (uint256){
+    function mint(address to, string memory tokenURI, string memory name, string memory description) public returns (uint256){
         uint256 tokenId = _nft.mint(to, tokenURI);
-        _NFTInMarket[tokenId] = NFTListing(0, to, tokenURI);
+        _NFTInMarket[tokenId] = NFTListing(0, to, tokenURI, name, description);
         _tokenIdCounter++;
         emit Event.Minted(tokenId, to, tokenURI);
         return tokenId;
@@ -109,14 +110,13 @@ contract MarketNFT is Ownable {
         return _tokenIdCounter;
     }
 
-    function getNFT(uint256 tokenId) external view returns (uint256, address, string memory) {
+    function getNFT(uint256 tokenId) external view returns (uint256, address, string memory, string memory, string memory) {
         NFTListing memory nft = _NFTInMarket[tokenId];
-        return (nft.price, nft.owner, nft.url);
+        return (nft.price, nft.owner, nft.url, nft.name, nft.description);
     }
 
-    function getNFTsByOwner(address owner) external view returns (uint256[] memory, string[] memory) {
+    function getNFTsByOwner(address owner) external view returns (uint256[] memory, string[] memory, string[] memory, string[] memory) {
         uint256 counter = 0;
-        //conta quanti NFT sono posseduti dal owner
         for (uint256 i = 0; i < _tokenIdCounter; i++) {
             if (_NFTInMarket[i].owner == owner) {
                 counter++;
@@ -125,29 +125,30 @@ contract MarketNFT is Ownable {
 
         uint256[] memory tokenIds = new uint256[](counter);
         string[] memory urls = new string[](counter);
+        string[] memory names = new string[](counter);
+        string[] memory descriptions = new string[](counter);
         counter = 0;
         for (uint256 i = 0; i < _tokenIdCounter; i++) {
             if (_NFTInMarket[i].owner == owner) {
                 tokenIds[counter] = i;
                 urls[counter] = _NFTInMarket[i].url;
+                names[counter] = _NFTInMarket[i].name;
+                descriptions[counter] = _NFTInMarket[i].description;
                 counter++;
             }
         }
 
-        return (tokenIds, urls);
+        return (tokenIds, urls, names, descriptions);
     }
 
     function removeNFT(uint256 tokenId) external {
         NFTListing memory listing = _NFTInMarket[tokenId];
         require(listing.owner == msg.sender, Errors.ERROR_NOT_SELLER);
 
-       // _burn(tokenId);
         delete _NFTInMarket[tokenId];
     }
 
-
-
-    function getAllNFTsForSale() external view returns (uint256[] memory, address[] memory, string[] memory, uint256[] memory) {
+    function getAllNFTsForSale() external view returns (uint256[] memory, address[] memory, string[] memory, uint256[] memory, string[] memory, string[] memory) {
         uint256 counter = 0;
         for (uint256 i = 0; i <= _tokenIdCounter; i++) {
             if (_NFTInMarket[i].price > 0) {
@@ -159,6 +160,8 @@ contract MarketNFT is Ownable {
         address[] memory owners = new address[](counter);
         string[] memory urls = new string[](counter);
         uint256[] memory prices = new uint256[](counter);
+        string[] memory names = new string[](counter);
+        string[] memory descriptions = new string[](counter);
         counter = 0;
         for (uint256 i = 0; i <= _tokenIdCounter; i++) {
             if (_NFTInMarket[i].price > 0) {
@@ -166,11 +169,12 @@ contract MarketNFT is Ownable {
                 owners[counter] = _NFTInMarket[i].owner;
                 urls[counter] = _NFTInMarket[i].url;
                 prices[counter] = _NFTInMarket[i].price;
+                names[counter] = _NFTInMarket[i].name;
+                descriptions[counter] = _NFTInMarket[i].description;
                 counter++;
             }
         }
 
-        return (tokenIds, owners, urls, prices);
+        return (tokenIds, owners, urls, prices, names, descriptions);
     }
-
 }
