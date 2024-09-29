@@ -39,13 +39,14 @@ const YourNFTs = () => {
                 const description = descriptions[i];
 
                 const isForSale = saleTokenIds.map(id => id.toString()).includes(tokenId);
-
+                const price = isForSale ? ethers.utils.formatEther(salePrices[i]) : null;
                 nftDetails.push({
                     id: tokenId,
                     url: url,
                     name: name,
                     description: description,
-                    isForSale: isForSale
+                    isForSale: isForSale,
+                    price: price
                 });
 
                 console.log(`tokenId = ${tokenId}, url = ${url}, name = ${name}, description = ${description}, isForSale = ${isForSale}`);
@@ -68,7 +69,7 @@ const YourNFTs = () => {
             setNotification({ open: true, message: `NFT ${tokenId} listed for sale at ${price} ETH`, severity: 'success' });
             setNfts(prevNfts =>
                 prevNfts.map(nft =>
-                    nft.id === tokenId ? { ...nft, isForSale: true } : nft
+                    nft.id === tokenId ? { ...nft, isForSale: true, price: price } : nft
                 )
             );
         } catch (error) {
@@ -114,6 +115,23 @@ const YourNFTs = () => {
         });
     };
 
+    const updatePrice = async (nftId, newPrice) => {
+        const contract = getContract();
+        try {
+            const tx = await contract.updatePrice(nftId, ethers.utils.parseEther(newPrice));
+            await tx.wait();
+            setNfts(prevNfts =>
+                prevNfts.map(nft =>
+                    nft.id === nftId ? { ...nft, isForSale: true, price: newPrice } : nft
+                )
+            );
+            setNotification({ open: true, message: "Price updated successfully!", severity: 'success' });
+        } catch (error) {
+            console.error("Failed to update price:", error);
+            setNotification({ open: true, message: "Failed to update price.", severity: 'error' });
+        }
+    };
+
     return (
         <div>
             <h2>Your NFTs</h2>
@@ -123,15 +141,53 @@ const YourNFTs = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
                 {nfts.map(nft => (
                     <div key={nft.id} className="nft-card" style={{ margin: '10px', border: '1px solid black', padding: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+                        {/* Mostra "FOR SALE" in rosso se l'NFT è in vendita */}
+                        {nft.isForSale && (
+                            <p style={{ color: 'red', fontWeight: 'bold' }}>
+                                FOR SALE - Price: {nft.price} ETH
+                            </p>
+                        )}
+
                         <img src={nft.url} alt={`NFT ${nft.id}`} style={{ width: '200px', height: '200px', objectFit: 'cover' }} />
+
                         <Box sx={{ textAlign: 'center', marginTop: '10px' }}>
                             <h3 style={{ margin: '5px 0', fontWeight: 'bold' }}>{nft.name}</h3>
                             <p style={{ margin: '5px 0', color: 'gray' }}>{nft.description}</p>
                             <p style={{ margin: '5px 0' }}>ID: {nft.id}</p>
-
                         </Box>
+
                         {nft.isForSale ? (
-                            <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)} style={{ margin: '5px' }}>Cancel Sale</Button>
+                            <>
+                                {/* Update Price Form */}
+                                <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+                                    <TextField
+                                        label="Update Price in ETH"
+                                        type="number"
+                                        value={priceInputs[nft.id] || ''}
+                                        onChange={(e) => handlePriceChange(e, nft.id)}
+                                        style={{ marginBottom: '10px' }}
+                                    />
+                                    <Button
+                                        variant="contained" color="primary"
+                                        onClick={() => {
+                                            const price = priceInputs[nft.id];
+                                            if (price) {
+                                                updatePrice(nft.id, price); // Aggiorna il prezzo dell'NFT
+                                            } else {
+                                                setNotification({ open: true, message: "Please enter a price.", severity: 'warning' });
+                                            }
+                                        }}
+                                        style={{ margin: '5px' }}
+                                    >
+                                        Update Price
+                                    </Button>
+                                </Box>
+
+                                <Button variant="contained" color="secondary" onClick={() => cancelSale(nft.id)} style={{ margin: '5px' }}>
+                                    Cancel Sale
+                                </Button>
+                            </>
                         ) : (
                             <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
                                 <TextField
@@ -139,9 +195,7 @@ const YourNFTs = () => {
                                     type="number"
                                     value={priceInputs[nft.id] || ''}
                                     onChange={(e) => handlePriceChange(e, nft.id)}
-
                                     style={{ marginBottom: '10px' }}
-
                                 />
                                 <Button
                                     variant="contained" color="primary"
@@ -154,14 +208,15 @@ const YourNFTs = () => {
                                         }
                                     }}
                                     style={{ margin: '5px' }}
-
-
                                 >
                                     Sale
                                 </Button>
                             </Box>
                         )}
-                        <Button variant="contained" color="error" onClick={() => removeNFT(nft.id)} style={{ margin: '5px' }}>Delete NFT</Button>
+
+                        <Button variant="contained" color="error" onClick={() => removeNFT(nft.id)} style={{ margin: '5px' }}>
+                            Delete NFT
+                        </Button>
                     </div>
                 ))}
             </div>
@@ -175,6 +230,7 @@ const YourNFTs = () => {
                 </Alert>
             </Snackbar>
         </div>
+
     );
 };
 

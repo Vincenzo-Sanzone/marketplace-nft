@@ -5,6 +5,7 @@ import MarketNFTModule from "./MarketNFTModule";
 const NFTModule = buildModule("NFTModule", (m) => {
     const market = m.useModule(MarketNFTModule)
     const NFT = m.contract("NFT", [market.MarketNFT]);
+    console.log(NFT)
     return { NFT};
 });
 

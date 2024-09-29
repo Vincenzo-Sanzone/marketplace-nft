@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
-    "ethers": "^6.12.1",
     "mocha-param": "^2.0.1"
   },
   "devDependencies": {
@@ -13,12 +12,15 @@
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@nomicfoundation/ignition-core": "^0.15.0",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@typechain/ethers-v6": "^0.5.0",
     "@typechain/hardhat": "^9.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^10.0.6",
     "chai": "^4.2.0",
-    "hardhat": "^2.22.3",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "hardhat": "^2.22.12",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.9.2",
@@ -29,6 +31,7 @@
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage",
     "local node": "npx hardhat node",
-    "local deploy": "npx hardhat ignition deploy ./ignition/modules/NFTModule.ts --network localhost"
+    "local deploy": "npx hardhat ignition deploy ./ignition/modules/NFTModule.ts --network localhost",
+    "sepolia deploy": "npx hardhat run scripts/deploy.ts --network sepolia"
   }
 }

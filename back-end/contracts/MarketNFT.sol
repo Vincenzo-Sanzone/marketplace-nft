@@ -177,4 +177,17 @@ contract MarketNFT is Ownable {
 
         return (tokenIds, owners, urls, prices, names, descriptions);
     }
+
+
+    function updatePrice(uint256 tokenId, uint256 newPrice) public {
+
+        require(newPrice > 0, Errors.ERROR_PRICE_ZERO);
+        NFTListing storage listing = _NFTInMarket[tokenId];
+
+        require(listing.price > 0, Errors.ERROR_NFT_NOT_FOR_SALE);
+
+        require(listing.owner == msg.sender, Errors.ERROR_NOT_OWNER);
+
+        listing.price = newPrice;
+    }
 }

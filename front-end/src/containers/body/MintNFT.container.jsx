@@ -171,7 +171,7 @@ async function handleMintNFT(setSnackMessage, setSeverity, setOpenSnack, url, ac
         await contract.mint(account.address, url, name, description);
 
         contract.on("Minted", () => {
-            setSnackMessage("NFT Minted. now wait for the transaction confirm...");
+            setSnackMessage("NFT Minted.");
             setSeverity("success");
             setOpenSnack(true);
         });

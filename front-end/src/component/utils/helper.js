@@ -10,7 +10,7 @@ export const getContract = () => {
 
 
     return new ethers.Contract(
-        "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+        "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
         abi,
         signer
     );
